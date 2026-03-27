@@ -299,7 +299,7 @@
   <header class="app-header">
     <h1 class="title">FDP Tool</h1>
     <p class="subtitle">
-      Výpočty pouze v UTC. SBY zkracuje duty o čas nad 6:00.
+      Výpočty v lokálním čase. SBY zkracuje duty o čas nad 6:00.
     </p>
   </header>
 
@@ -308,7 +308,7 @@
 
     <div class="grid grid-2">
       <div class="field">
-        <label for="report">Reporting UTC</label>
+        <label for="report">Reporting local</label>
         <input type="time" id="report" value="12:20" />
       </div>
 
@@ -332,7 +332,7 @@
           </div>
           <div>
             <input type="radio" id="service-extended" name="serviceType" value="extended" />
-            <label for="service-extended">Extended „e“</label>
+            <label for="service-extended">„e“</label>
           </div>
         </div>
       </div>
@@ -366,13 +366,13 @@
       <div class="result-box">
         <div class="result-label">Maximální FDP</div>
         <div class="result-value" id="maxFdp">--:--</div>
-        <div class="result-sub" id="fdpEndText">Konec duty: --:-- UTC</div>
+        <div class="result-sub" id="fdpEndText">Konec duty: --:-- local</div>
       </div>
 
       <div class="result-box orange">
         <div class="result-label">Maximální FDP s kapitánským prodloužením</div>
         <div class="result-value" id="maxFdpCaptain">--:--</div>
-        <div class="result-sub" id="fdpEndCaptainText">Konec duty: --:-- UTC</div>
+        <div class="result-sub" id="fdpEndCaptainText">Konec duty: --:-- local</div>
       </div>
 
       <div class="small-grid">
@@ -403,7 +403,7 @@
     </div>
 
     <div class="footer-note">
-      Vždy ověř výsledek vlastní hlavou.
+      Výsledek si vždy sám ověř.
     </div>
   </section>
 
