@@ -307,7 +307,7 @@
   <header class="app-header">
     <h1 class="title">FDP Tool</h1>
     <p class="subtitle">
-      Tabulky běží v lokálním čase. Ve výsledcích uvidíš local i UTC.
+      Tabulky běží v lokálním čase. Ve výsledcích uvidíš LT i UTC.
     </p>
   </header>
 
@@ -316,7 +316,7 @@
 
     <div class="grid grid-2">
       <div class="field">
-        <label for="report">Reporting local</label>
+        <label for="report">Reporting time LT</label>
         <input type="time" id="report" value="12:20" />
       </div>
 
@@ -358,11 +358,11 @@
       <option value="30">+30 min</option>
     </select>
   </div>
-  <div class="hint">Např. Indie = UTC+5 a +30 min.</div>
+  <div class="hint">Např. Indie +30 min.</div>
 </div>
 
       <div class="field">
-        <label for="sectors">Počet úseků</label>
+        <label for="sectors">Počet sektorů</label>
         <select id="sectors">
           <option value="1">1</option>
           <option value="2" selected>2</option>
@@ -381,7 +381,7 @@
           </div>
           <div>
             <input type="radio" id="service-extended" name="serviceType" value="extended" />
-            <label for="service-extended">„e“</label>
+            <label for="service-extended">Extended „e“</label>
           </div>
         </div>
       </div>
@@ -393,12 +393,12 @@
       </div>
 
       <div class="field">
-        <label for="lastLeg">Doba letu posledního úseku</label>
+        <label for="lastLeg">Doba letu posledního sektoru</label>
         <input type="time" id="lastLeg" value="02:04" />
       </div>
 
       <div class="field">
-        <label for="taxi">Taxi</label>
+        <label for="taxi">Taxi-in</label>
         <input type="time" id="taxi" value="00:10" />
       </div>
     </div>
@@ -415,19 +415,19 @@
       <div class="result-box">
         <div class="result-label">Maximální FDP</div>
         <div class="result-value" id="maxFdp">--:--</div>
-        <div class="result-sub" id="fdpEndText">Konec duty: --:-- local / --:-- UTC</div>
+        <div class="result-sub" id="fdpEndText">Konec duty: --:-- LT/--:-- UTC</div>
       </div>
 
       <div class="result-box orange">
         <div class="result-label">Maximální FDP s kapitánským prodloužením</div>
         <div class="result-value" id="maxFdpCaptain">--:--</div>
-        <div class="result-sub" id="fdpEndCaptainText">Konec duty: --:-- local / --:-- UTC</div>
+        <div class="result-sub" id="fdpEndCaptainText">Konec duty: --:-- LT/--:-- UTC</div>
       </div>
 
       <div class="small-grid">
         <div class="mini">
-          <div class="k">Latest departure</div>
-          <div class="v" id="latestDeparture">--:-- local</div>
+          <div class="v">Latest departure</div>
+          <div class="k" id="latestDeparture">--:-- LT</div>
           <div class="subv" id="latestDepartureUtc">--:-- UTC</div>
         </div>
 
