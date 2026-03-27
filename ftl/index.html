@@ -386,7 +386,7 @@
         </div>
       </div>
 
-    <div class="field">
+  <div class="field">
   <label>Byl před reportingem SBY?</label>
   <div class="segmented">
     <div>
@@ -401,23 +401,19 @@
 </div>
 
 <div class="field" id="sbyFields" style="display:none;">
-  <label for="sby">Doba držení SBY před reportingem</label>
-  <input type="time" id="sby" value="00:00" />
+  <label for="sbyStart">Začátek SBY</label>
+  <input type="time" id="sbyStart" value="00:00" />
 
-   <div class="hint">
-    SBY končí reportingem (dle ORO.FTL.225)
-  </div>
-  
   <div style="height:10px;"></div>
 
-  <label for="sbyCallTime">Čas hovoru z plánování</label>
+  <label for="sbyCallTime">Čas hovoru z planningu</label>
   <input type="time" id="sbyCallTime" value="00:00" />
 
   <div class="hint">
-    Pokud call time padne mezi 23:00–07:00, od tohoto času do reportingu se vše počítá jako denní držení.
+    Doba SBY se dopočítá automaticky z reportingu. Pokud call time padne mezi 23:00–07:00,
+    od tohoto času do reportingu se vše počítá jako denní držení.
   </div>
 </div>
-
       <div class="field">
         <label for="lastLeg">Doba letu posledního sektoru</label>
         <input type="time" id="lastLeg" value="02:04" />
@@ -489,5 +485,20 @@
   });
 </script>
   <script src="app.js"></script>
+<script>
+  function toggleSbyFields() {
+    const hasSby = document.querySelector('input[name="hasSby"]:checked')?.value;
+    document.getElementById("sbyFields").style.display =
+      hasSby === "yes" ? "block" : "none";
+  }
+
+  document.addEventListener("DOMContentLoaded", () => {
+    document.querySelectorAll('input[name="hasSby"]').forEach(el => {
+      el.addEventListener("change", toggleSbyFields);
+    });
+    toggleSbyFields();
+  });
+</script>
+
 </body>
 </html>
