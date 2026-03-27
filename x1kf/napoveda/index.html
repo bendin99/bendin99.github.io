@@ -4,7 +4,6 @@
 <meta charset="UTF-8">
 <title>Kontrolní bod</title>
 
-<!-- FAVICON (viz níže 👇) -->
 <link rel="icon" href="/favicon.png">
 <style>
 body {
@@ -25,29 +24,16 @@ body {
   max-width: 650px;
   box-shadow: 0 10px 30px rgba(0,0,0,0.1);
   animation: fadeIn 0.5s ease;
+  text-align: center;
 }
 
 h1 {
   color: #235c70;
-  margin-bottom: 5px;
-}
-
-.stage {
-  font-size: 0.9em;
-  color: #777;
-  margin-bottom: 20px;
-}
-
-.coords {
-  background: #f4f7f9;
-  padding: 12px;
-  border-radius: 8px;
-  margin-top: 15px;
-  font-weight: bold;
+  margin-bottom: 10px;
 }
 
 button {
-  margin-top: 10px;
+  margin: 10px 5px 0;
   padding: 10px 14px;
   border-radius: 8px;
   border: none;
@@ -60,13 +46,8 @@ button:hover {
   opacity: 0.9;
 }
 
-.hint {
-  margin-top: 25px;
-  font-size: 0.95em;
-}
-
-a {
-  color: #235c70;
+.hidden {
+  display: none;
 }
 
 @keyframes fadeIn {
@@ -74,37 +55,36 @@ a {
   to { opacity: 1; transform: translateY(0); }
 }
 </style>
-
 </head>
+
 <body>
 
-<div class="card">
-  <h1>Kontrolní bod č. 2</h1>
+<div class="card" id="step1">
+  <h1>Kontrola podvodníků</h1>
+  <p>Opravdu jsi zkusil úplně vše?</p>
+
+  <button onclick="goBack()">NE</button>
+  <button onclick="showNext()">ANO</button>
+</div>
+
+<div class="card hidden" id="step2">
+  <h1>Nápověda</h1>
 
   <p>
-    Šel a šel, až došel sem. Byla přeháňka, tak se chtěl schovat. Pak zjistil, že tady jezdí i šaliny. Nasedl a jel.
+    Neřekneme ti kde, ale řekneme ti co. Dobrý, ne?
   </p>
 
-  <p><strong>Přesuňte se na souřadnice:</strong></p>
-
-  <div class="coords" id="coords">
-    N 49°10.64005' E 16°36.18638'
-  </div>
-
-  <button onclick="copyCoords()">Kopírovat souřadnice</button>
-
-  <div class="hint">
-    V případě, že potřebujete nápovědu k nalezení dalšího kontrolního bodu,
-    <a href="#">klikněte zde</a>.
-    Ale nepodvádějte. Jen když budete opravdu v koncích.
-  </div>
+  <img src="H48_nalepka.png" alt="Nálepka" width="100%" style="max-width: 400px; display: block; margin: 20px auto;">
 </div>
 
 <script>
-function copyCoords() {
-  const text = document.getElementById("coords").innerText;
-  navigator.clipboard.writeText(text);
-  alert("Souřadnice zkopírovány");
+function goBack() {
+  window.location.href = "https://h48va.cz/pt2z";
+}
+
+function showNext() {
+  document.getElementById("step1").classList.add("hidden");
+  document.getElementById("step2").classList.remove("hidden");
 }
 </script>
 
