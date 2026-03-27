@@ -21,7 +21,7 @@ const BASE_TABLE = [
   { start: "19:00", end: "23:59", values: ["11:00", "11:00", "10:30", "10:00", "09:30"] }
 ];
 
-// Tabulka „e” - lokální čas
+// Tabulka „e“ - lokální čas
 const EXTENDED_TABLE = [
   { start: "19:00", end: "04:59", values: ["11:00", "11:00", "10:30", "10:00", "09:30"], overnight: true },
   { start: "05:00", end: "05:14", values: ["12:00", "12:00", "11:30", "11:00", "10:30"] },
@@ -71,6 +71,10 @@ function minutesToDuration(totalMinutes) {
   return `${sign}${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`;
 }
 
+function localToUtc(localMinutes, utcOffsetHours) {
+  return localMinutes - utcOffsetHours * 60;
+}
+
 function getNowLocalMinutes() {
   const now = new Date();
   return now.getHours() * 60 + now.getMinutes();
@@ -105,6 +109,7 @@ function calculateStandbyReduction(sbyMinutes) {
 
 function calculateResults() {
   const report = toMinutes(document.getElementById("report").value);
+  const utcOffset = parseInt(document.getElementById("utcOffset").value, 10);
   const sectors = parseInt(document.getElementById("sectors").value, 10);
   const sby = toMinutes(document.getElementById("sby").value);
   const lastLeg = toMinutes(document.getElementById("lastLeg").value);
@@ -117,9 +122,7 @@ function calculateResults() {
   const selectedTableFdp = lookupTableValue(selectedTable, report, sectors);
 
   if (baseTableFdp === null || selectedTableFdp === null) {
-    return {
-      error: "Nepodařilo se najít odpovídající řádek v tabulce."
-    };
+    return { error: "Nepodařilo se najít odpovídající řádek v tabulce." };
   }
 
   const plannedExtensionDifference = selectedTableFdp - baseTableFdp;
@@ -131,15 +134,21 @@ function calculateResults() {
   const maxFdp = selectedTableFdp - standbyReduction;
   const maxFdpCaptain = selectedTableFdp + captainExtraApplied - standbyReduction;
 
-  const dutyEnd = report + maxFdp;
-  const dutyEndCaptain = report + maxFdpCaptain;
+  const dutyEndLocal = report + maxFdp;
+  const dutyEndCaptainLocal = report + maxFdpCaptain;
 
-  const latestDeparture = dutyEnd - lastLeg - taxi;
-  const latestDepartureCaptain = dutyEndCaptain - lastLeg - taxi;
+  const latestDepartureLocal = dutyEndLocal - lastLeg - taxi;
+  const latestDepartureCaptainLocal = dutyEndCaptainLocal - lastLeg - taxi;
+
+  const dutyEndUtc = localToUtc(dutyEndLocal, utcOffset);
+  const dutyEndCaptainUtc = localToUtc(dutyEndCaptainLocal, utcOffset);
+  const latestDepartureUtc = localToUtc(latestDepartureLocal, utcOffset);
+  const latestDepartureCaptainUtc = localToUtc(latestDepartureCaptainLocal, utcOffset);
 
   return {
     error: null,
     serviceType,
+    utcOffset,
     report,
     sectors,
     sby,
@@ -152,10 +161,14 @@ function calculateResults() {
     captainExtraApplied,
     maxFdp,
     maxFdpCaptain,
-    dutyEnd,
-    dutyEndCaptain,
-    latestDeparture,
-    latestDepartureCaptain
+    dutyEndLocal,
+    dutyEndCaptainLocal,
+    latestDepartureLocal,
+    latestDepartureCaptainLocal,
+    dutyEndUtc,
+    dutyEndCaptainUtc,
+    latestDepartureUtc,
+    latestDepartureCaptainUtc
   };
 }
 
@@ -165,10 +178,12 @@ function renderResults(result) {
   if (result.error) {
     document.getElementById("maxFdp").textContent = "--:--";
     document.getElementById("maxFdpCaptain").textContent = "--:--";
-    document.getElementById("fdpEndText").textContent = "Konec duty: --:-- local";
-    document.getElementById("fdpEndCaptainText").textContent = "Konec duty: --:-- local";
-    document.getElementById("latestDeparture").textContent = "--:--";
-    document.getElementById("latestDepartureCaptain").textContent = "--:--";
+    document.getElementById("fdpEndText").textContent = "Konec duty: --:-- local / --:-- UTC";
+    document.getElementById("fdpEndCaptainText").textContent = "Konec duty: --:-- local / --:-- UTC";
+    document.getElementById("latestDeparture").textContent = "--:-- local";
+    document.getElementById("latestDepartureUtc").textContent = "--:-- UTC";
+    document.getElementById("latestDepartureCaptain").textContent = "--:-- local";
+    document.getElementById("latestDepartureCaptainUtc").textContent = "--:-- UTC";
     document.getElementById("countdownNormal").textContent = "--:--";
     document.getElementById("countdownCaptain").textContent = "--:--";
 
@@ -181,16 +196,22 @@ function renderResults(result) {
   document.getElementById("maxFdpCaptain").textContent = minutesToDuration(result.maxFdpCaptain);
 
   document.getElementById("fdpEndText").textContent =
-    `Konec duty: ${minutesToTime(result.dutyEnd)} local`;
+    `Konec duty: ${minutesToTime(result.dutyEndLocal)} local / ${minutesToTime(result.dutyEndUtc)} UTC`;
 
   document.getElementById("fdpEndCaptainText").textContent =
-    `Konec duty: ${minutesToTime(result.dutyEndCaptain)} local`;
+    `Konec duty: ${minutesToTime(result.dutyEndCaptainLocal)} local / ${minutesToTime(result.dutyEndCaptainUtc)} UTC`;
 
   document.getElementById("latestDeparture").textContent =
-    `${minutesToTime(result.latestDeparture)} local`;
+    `${minutesToTime(result.latestDepartureLocal)} local`;
+
+  document.getElementById("latestDepartureUtc").textContent =
+    `${minutesToTime(result.latestDepartureUtc)} UTC`;
 
   document.getElementById("latestDepartureCaptain").textContent =
-    `${minutesToTime(result.latestDepartureCaptain)} local`;
+    `${minutesToTime(result.latestDepartureCaptainLocal)} local`;
+
+  document.getElementById("latestDepartureCaptainUtc").textContent =
+    `${minutesToTime(result.latestDepartureCaptainUtc)} UTC`;
 
   let infoText = "";
   if (result.serviceType === "extended") {
@@ -208,11 +229,13 @@ function renderResults(result) {
     infoText += ` SBY duty nezkrátila.`;
   }
 
+  infoText += ` Přepočet do UTC je udělaný s offsetem UTC${result.utcOffset >= 0 ? "+" : ""}${result.utcOffset}.`;
+
   infoBox.className = "status good";
   infoBox.textContent = infoText;
 
-  currentEndNormal = result.dutyEnd;
-  currentEndCaptain = result.dutyEndCaptain;
+  currentEndNormal = result.dutyEndLocal;
+  currentEndCaptain = result.dutyEndCaptainLocal;
   updateCountdowns();
 }
 
