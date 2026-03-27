@@ -2,75 +2,122 @@
 <html lang="cs">
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Kontrolní bod</title>
 
-<!-- FAVICON (viz níže 👇) -->
 <link rel="icon" href="/favicon.png">
+
 <style>
+* {
+  box-sizing: border-box;
+}
+
 body {
   font-family: Arial, sans-serif;
-  background: linear-gradient(135deg, #eef3f5, #dfe8ec);
+  background: linear-gradient(180deg, #eef3f5 0%, #dfe8ec 100%);
   margin: 0;
-  display: flex;
-  justify-content: center;
-  align-items: center;
+  padding: 16px;
   min-height: 100vh;
+  color: #1f2d33;
+}
+
+.page {
+  width: 100%;
+  max-width: 480px;
+  margin: 0 auto;
 }
 
 .card {
   background: white;
-  border-radius: 14px;
-  padding: 30px;
-  width: 90%;
-  max-width: 650px;
-  box-shadow: 0 10px 30px rgba(0,0,0,0.1);
-  animation: fadeIn 0.5s ease;
+  border-radius: 18px;
+  padding: 20px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.10);
+  animation: fadeIn 0.4s ease;
 }
 
 h1 {
   color: #235c70;
-  margin-bottom: 5px;
+  margin: 0 0 10px 0;
+  font-size: 1.5rem;
 }
 
-.stage {
-  font-size: 0.9em;
-  color: #777;
-  margin-bottom: 20px;
+p {
+  line-height: 1.55;
+  margin-bottom: 14px;
+}
+
+.coords-box {
+  background: linear-gradient(135deg, #235c70, #2f748c);
+  color: white;
+  padding: 16px;
+  border-radius: 14px;
+  margin-top: 14px;
+  box-shadow: 0 6px 18px rgba(35, 92, 112, 0.18);
+}
+
+.coords-title {
+  font-weight: bold;
+  margin-bottom: 8px;
 }
 
 .coords {
-  background: #f4f7f9;
-  padding: 12px;
+  font-family: monospace;
+  font-size: 1.05rem;
+  background: rgba(255,255,255,0.15);
+  padding: 10px;
   border-radius: 8px;
-  margin-top: 15px;
-  font-weight: bold;
+  word-break: break-word;
+}
+
+.buttons {
+  margin-top: 14px;
+  display: grid;
+  gap: 10px;
 }
 
 button {
-  margin-top: 10px;
-  padding: 10px 14px;
-  border-radius: 8px;
+  width: 100%;
+  padding: 13px;
+  border-radius: 10px;
   border: none;
   background: #235c70;
   color: white;
+  font-size: 1rem;
+  font-weight: 600;
   cursor: pointer;
 }
 
 button:hover {
-  opacity: 0.9;
+  opacity: 0.92;
 }
 
 .hint {
-  margin-top: 25px;
-  font-size: 0.95em;
+  margin-top: 18px;
+  font-size: 0.92rem;
+  color: #666;
+  line-height: 1.5;
 }
 
-a {
+.hint a {
   color: #235c70;
 }
 
+@media (min-width: 700px) {
+  body {
+    padding: 28px;
+  }
+
+  .card {
+    padding: 26px;
+  }
+
+  .buttons {
+    grid-template-columns: 1fr;
+  }
+}
+
 @keyframes fadeIn {
-  from { opacity: 0; transform: translateY(10px); }
+  from { opacity: 0; transform: translateY(8px); }
   to { opacity: 1; transform: translateY(0); }
 }
 </style>
@@ -78,18 +125,37 @@ a {
 </head>
 <body>
 
-<div class="card">
-  <h1>Kontrolní bod č. 7 – finálka</h1>
-
-  <p>
-Tak a jste tady! Přesně zde se to stalo. Zbytek příběhu si můžete přehrát
-    <a href="https://www.youtube.com/watch?v=BlCI8iXmm_o">zde</a>.
-
-  </p>
-
-  <p><strong>Gratulujeme k úspěšnému dokončení této cesty a nezapomeňte se zapsat do logbooku!</strong></p>
+<div class="page">
+  <div class="card">
+    <h1>Kontrolní bod č. 7 – finálka</h1>
 
  
+
+    <p>
+    Tak a jste tady! Přesně zde se to stalo. Zbytek příběhu si můžete přehrát <a href="https://www.youtube.com/watch?v=BlCI8iXmm_o" target="_blank" rel="noopener noreferrer">zde</a>
+
+
+    </p>
+
+
+    <div class="coords-box">
+      <div class="coords-title">Gratulujeme k úspěšnému dokončení této cesty a nezapomeňte se zapsat do logbooku!</div>
+    
+    </div>
+
+    
+
+    
+  </div>
+</div>
+
+<script>
+function copyCoords() {
+  const text = document.getElementById("coords").innerText;
+  navigator.clipboard.writeText(text);
+  alert("Souřadnice zkopírovány");
+}
+</script>
 
 </body>
 </html>
