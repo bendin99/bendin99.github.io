@@ -109,8 +109,9 @@ function calculateStandbyReduction(sbyMinutes) {
 
 function calculateResults() {
   const report = toMinutes(document.getElementById("report").value);
-  const utcOffset = parseInt(document.getElementById("utcOffset").value, 10);
-  const sectors = parseInt(document.getElementById("sectors").value, 10);
+const utcOffsetHours = parseInt(document.getElementById("utcOffsetHours").value, 10);
+const utcOffsetHalf = parseInt(document.getElementById("utcOffsetHalf").value, 10);
+const utcOffset = utcOffsetHours + (utcOffsetHours < 0 ? -utcOffsetHalf / 60 : utcOffsetHalf / 60);  const sectors = parseInt(document.getElementById("sectors").value, 10);
   const sby = toMinutes(document.getElementById("sby").value);
   const lastLeg = toMinutes(document.getElementById("lastLeg").value);
   const taxi = toMinutes(document.getElementById("taxi").value);
