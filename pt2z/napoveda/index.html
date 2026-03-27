@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+<meta charset="UTF-8">
+<title>Kontrolní bod</title>
+
+<!-- FAVICON (viz níže 👇) -->
+<link rel="icon" href="/favicon.png">
+<style>
+body {
+  font-family: Arial, sans-serif;
+  background: linear-gradient(135deg, #eef3f5, #dfe8ec);
+  margin: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+}
+
+.card {
+  background: white;
+  border-radius: 14px;
+  padding: 30px;
+  width: 90%;
+  max-width: 650px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+  animation: fadeIn 0.5s ease;
+}
+
+h1 {
+  color: #235c70;
+  margin-bottom: 5px;
+}
+
+.stage {
+  font-size: 0.9em;
+  color: #777;
+  margin-bottom: 20px;
+}
+
+.coords {
+  background: #f4f7f9;
+  padding: 12px;
+  border-radius: 8px;
+  margin-top: 15px;
+  font-weight: bold;
+}
+
+button {
+  margin-top: 10px;
+  padding: 10px 14px;
+  border-radius: 8px;
+  border: none;
+  background: #235c70;
+  color: white;
+  cursor: pointer;
+}
+
+button:hover {
+  opacity: 0.9;
+}
+
+.hint {
+  margin-top: 25px;
+  font-size: 0.95em;
+}
+
+a {
+  color: #235c70;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+</style>
+
+</head>
+<body>
+
+<div class="card">
+  <h1>Nápověda</h1>
+
+  <p>
+    Šel a šel, až došel sem. Byla přeháňka, tak se chtěl schovat. Pak zjistil, že tady jezdí i šaliny. Nasedl a jel.
+  </p>
+
+  <p><strong>Přesuňte se na souřadnice:</strong></p>
+
+  <div class="coords" id="coords">
+    N 49°10.64005' E 16°36.18638'
+  </div>
+
+  <button onclick="copyCoords()">Kopírovat souřadnice</button>
+
+  <div class="hint">
+    V případě, že potřebujete nápovědu k nalezení dalšího kontrolního bodu,
+    <a href="#">klikněte zde</a>.
+    Ale nepodvádějte. Jen když budete opravdu v koncích.
+  </div>
+</div>
+
+<script>
+function copyCoords() {
+  const text = document.getElementById("coords").innerText;
+  navigator.clipboard.writeText(text);
+  alert("Souřadnice zkopírovány");
+}
+</script>
+
+</body>
+</html>
