@@ -88,8 +88,12 @@
       width: 64px;
     }
 
-    .min {
-      width: 92px;
+    .min-left {
+      width: 54px;
+    }
+
+    .min-right {
+      width: 64px;
     }
 
     .buttons {
@@ -177,14 +181,18 @@
         <input id="nDeg" class="deg" type="text" inputmode="numeric" maxlength="2" placeholder="00">
         <span class="fixed">°</span>
 
-        <input id="nMin" class="min" type="text" inputmode="decimal" maxlength="6" placeholder="00.000">
+        <input id="nMinA" class="min-left" type="text" inputmode="numeric" maxlength="2" placeholder="00">
+        <span class="fixed">.</span>
+        <input id="nMinB" class="min-right" type="text" inputmode="numeric" maxlength="3" placeholder="000">
         <span class="fixed">′</span>
 
         <span class="fixed">E</span>
         <input id="eDeg" class="deg" type="text" inputmode="numeric" maxlength="2" placeholder="00">
         <span class="fixed">°</span>
 
-        <input id="eMin" class="min" type="text" inputmode="decimal" maxlength="6" placeholder="00.000">
+        <input id="eMinA" class="min-left" type="text" inputmode="numeric" maxlength="2" placeholder="00">
+        <span class="fixed">.</span>
+        <input id="eMinB" class="min-right" type="text" inputmode="numeric" maxlength="3" placeholder="000">
         <span class="fixed">′</span>
       </div>
 
@@ -204,57 +212,48 @@
     const correctHash = "76a71bf13a65eddf2e24d4539c83450144ba0e12d0b04b0f04f6470ee176bf4c";
 
     const nDegInput = document.getElementById("nDeg");
-    const nMinInput = document.getElementById("nMin");
+    const nMinAInput = document.getElementById("nMinA");
+    const nMinBInput = document.getElementById("nMinB");
     const eDegInput = document.getElementById("eDeg");
-    const eMinInput = document.getElementById("eMin");
+    const eMinAInput = document.getElementById("eMinA");
+    const eMinBInput = document.getElementById("eMinB");
     const preview = document.getElementById("preview");
     const result = document.getElementById("result");
 
-    function cleanDegree(value) {
+    function cleanDigits(value) {
       return value.replace(/[^\d]/g, "");
     }
 
-    function cleanMinutes(value) {
-      value = value.replace(/,/g, ".");
-      value = value.replace(/[^\d.]/g, "");
-
-      const firstDot = value.indexOf(".");
-      if (firstDot !== -1) {
-        value =
-          value.slice(0, firstDot + 1) +
-          value.slice(firstDot + 1).replace(/\./g, "");
-      }
-
-      return value;
-    }
-
-    function padMinutes(value) {
-      if (!value.includes(".")) return value;
-      const parts = value.split(".");
-      const whole = parts[0];
-      const decimals = (parts[1] || "").slice(0, 3);
-      return whole + "." + decimals;
+    function buildMinutes(partA, partB) {
+      const a = cleanDigits(partA);
+      const b = cleanDigits(partB);
+      if (!a && !b) return "";
+      return `${a}.${b}`;
     }
 
     function buildFormattedCoords() {
-      const nDeg = cleanDegree(nDegInput.value);
-      const nMin = padMinutes(cleanMinutes(nMinInput.value));
-      const eDeg = cleanDegree(eDegInput.value);
-      const eMin = padMinutes(cleanMinutes(eMinInput.value));
+      const nDeg = cleanDigits(nDegInput.value);
+      const nMinA = cleanDigits(nMinAInput.value);
+      const nMinB = cleanDigits(nMinBInput.value);
+      const eDeg = cleanDigits(eDegInput.value);
+      const eMinA = cleanDigits(eMinAInput.value);
+      const eMinB = cleanDigits(eMinBInput.value);
 
       const showNDeg = nDeg || "__";
-      const showNMin = nMin || "__.___";
+      const showNMinA = nMinA || "__";
+      const showNMinB = nMinB || "___";
       const showEDeg = eDeg || "__";
-      const showEMin = eMin || "__.___";
+      const showEMinA = eMinA || "__";
+      const showEMinB = eMinB || "___";
 
-      return `N ${showNDeg}° ${showNMin}′ E ${showEDeg}° ${showEMin}′`;
+      return `N ${showNDeg}° ${showNMinA}.${showNMinB}′ E ${showEDeg}° ${showEMinA}.${showEMinB}′`;
     }
 
     function buildCanonicalCoords() {
-      const nDeg = cleanDegree(nDegInput.value);
-      const nMin = padMinutes(cleanMinutes(nMinInput.value));
-      const eDeg = cleanDegree(eDegInput.value);
-      const eMin = padMinutes(cleanMinutes(eMinInput.value));
+      const nDeg = cleanDigits(nDegInput.value);
+      const nMin = buildMinutes(nMinAInput.value, nMinBInput.value);
+      const eDeg = cleanDigits(eDegInput.value);
+      const eMin = buildMinutes(eMinAInput.value, eMinBInput.value);
 
       return `N ${nDeg}° ${nMin}′ E ${eDeg}° ${eMin}′`;
     }
@@ -263,16 +262,26 @@
       preview.textContent = buildFormattedCoords();
     }
 
-    [nDegInput, nMinInput, eDegInput, eMinInput].forEach(input => {
-      input.addEventListener("input", () => {
-        if (input === nDegInput || input === eDegInput) {
-          input.value = cleanDegree(input.value);
-        } else {
-          input.value = padMinutes(cleanMinutes(input.value));
+    function autoJump(current, next, maxLength) {
+      current.addEventListener("input", () => {
+        if (current.value.length >= maxLength) {
+          next.focus();
         }
+      });
+    }
+
+    [nDegInput, nMinAInput, nMinBInput, eDegInput, eMinAInput, eMinBInput].forEach(input => {
+      input.addEventListener("input", () => {
+        input.value = cleanDigits(input.value);
         updatePreview();
       });
     });
+
+    autoJump(nDegInput, nMinAInput, 2);
+    autoJump(nMinAInput, nMinBInput, 2);
+    autoJump(nMinBInput, eDegInput, 3);
+    autoJump(eDegInput, eMinAInput, 2);
+    autoJump(eMinAInput, eMinBInput, 2);
 
     async function sha256(text) {
       const data = new TextEncoder().encode(text);
@@ -282,18 +291,20 @@
     }
 
     async function checkCoords() {
-      const nDeg = cleanDegree(nDegInput.value);
-      const nMin = padMinutes(cleanMinutes(nMinInput.value));
-      const eDeg = cleanDegree(eDegInput.value);
-      const eMin = padMinutes(cleanMinutes(eMinInput.value));
+      const nDeg = cleanDigits(nDegInput.value);
+      const nMinA = cleanDigits(nMinAInput.value);
+      const nMinB = cleanDigits(nMinBInput.value);
+      const eDeg = cleanDigits(eDegInput.value);
+      const eMinA = cleanDigits(eMinAInput.value);
+      const eMinB = cleanDigits(eMinBInput.value);
 
-      if (!nDeg || !nMin || !eDeg || !eMin) {
+      if (!nDeg || !nMinA || !nMinB || !eDeg || !eMinA || !eMinB) {
         result.textContent = "Vyplňte prosím všechny části souřadnic.";
         result.className = "result bad";
         return;
       }
 
-      const candidate = `N ${nDeg}° ${nMin}′ E ${eDeg}° ${eMin}′`;
+      const candidate = `N ${nDeg}° ${nMinA}.${nMinB}′ E ${eDeg}° ${eMinA}.${eMinB}′`;
       const candidateHash = await sha256(candidate);
 
       if (candidateHash === correctHash) {
@@ -306,11 +317,18 @@
     }
 
     async function copyFormattedCoords() {
-      const text = buildCanonicalCoords();
+      const nDeg = cleanDigits(nDegInput.value) || "__";
+      const nMinA = cleanDigits(nMinAInput.value) || "__";
+      const nMinB = cleanDigits(nMinBInput.value) || "___";
+      const eDeg = cleanDigits(eDegInput.value) || "__";
+      const eMinA = cleanDigits(eMinAInput.value) || "__";
+      const eMinB = cleanDigits(eMinBInput.value) || "___";
+
+      const text = `N ${nDeg}° ${nMinA}.${nMinB}′ E ${eDeg}° ${eMinA}.${eMinB}′`;
 
       try {
         await navigator.clipboard.writeText(text);
-        alert("Text zkopírován");
+        alert("Souřadnice zkopírovány");
       } catch (err) {
         alert("Kopírování se nepovedlo.");
       }
