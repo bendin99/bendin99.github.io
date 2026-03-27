@@ -174,17 +174,17 @@
 
       <div class="coord-line">
         <span class="fixed">N</span>
-        <input id="nDeg" class="deg" type="text" inputmode="numeric" maxlength="2" placeholder="49">
+        <input id="nDeg" class="deg" type="text" inputmode="numeric" maxlength="2" placeholder="00">
         <span class="fixed">°</span>
 
-        <input id="nMin" class="min" type="text" inputmode="decimal" maxlength="6" placeholder="10.159">
+        <input id="nMin" class="min" type="text" inputmode="decimal" maxlength="6" placeholder="00.000">
         <span class="fixed">′</span>
 
         <span class="fixed">E</span>
-        <input id="eDeg" class="deg" type="text" inputmode="numeric" maxlength="2" placeholder="16">
+        <input id="eDeg" class="deg" type="text" inputmode="numeric" maxlength="2" placeholder="00">
         <span class="fixed">°</span>
 
-        <input id="eMin" class="min" type="text" inputmode="decimal" maxlength="6" placeholder="37.312">
+        <input id="eMin" class="min" type="text" inputmode="decimal" maxlength="6" placeholder="00.000">
         <span class="fixed">′</span>
       </div>
 
@@ -193,7 +193,7 @@
 
       <div class="buttons">
         <button onclick="checkCoords()">Ověřit souřadnice</button>
-        <button onclick="copyFormattedCoords()">Kopírovat text</button>
+        <button onclick="copyFormattedCoords()">Kopírovat souřadnice</button>
       </div>
 
       <div id="result" class="result"></div>
