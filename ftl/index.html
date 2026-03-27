@@ -224,7 +224,7 @@
       margin-top: 6px;
       font-size: 14px;
       color: var(--muted);
-      line-height: 1.4;
+      line-height: 1.5;
     }
 
     .small-grid {
@@ -258,6 +258,14 @@
       font-size: 22px;
       font-weight: 900;
       color: var(--text);
+      line-height: 1.2;
+    }
+
+    .mini .subv {
+      margin-top: 4px;
+      font-size: 14px;
+      color: var(--muted);
+      font-weight: 700;
     }
 
     .status {
@@ -299,7 +307,7 @@
   <header class="app-header">
     <h1 class="title">FDP Tool</h1>
     <p class="subtitle">
-      Výpočty v lokálním čase. SBY zkracuje duty o čas nad 6:00.
+      Tabulky běží v lokálním čase. Ve výsledcích uvidíš local i UTC.
     </p>
   </header>
 
@@ -310,6 +318,39 @@
       <div class="field">
         <label for="report">Reporting local</label>
         <input type="time" id="report" value="12:20" />
+      </div>
+
+      <div class="field">
+        <label for="utcOffset">Posun vůči UTC</label>
+        <select id="utcOffset">
+          <option value="-12">UTC-12</option>
+          <option value="-11">UTC-11</option>
+          <option value="-10">UTC-10</option>
+          <option value="-9">UTC-9</option>
+          <option value="-8">UTC-8</option>
+          <option value="-7">UTC-7</option>
+          <option value="-6">UTC-6</option>
+          <option value="-5">UTC-5</option>
+          <option value="-4">UTC-4</option>
+          <option value="-3">UTC-3</option>
+          <option value="-2">UTC-2</option>
+          <option value="-1">UTC-1</option>
+          <option value="0">UTC±0</option>
+          <option value="1" selected>UTC+1</option>
+          <option value="2">UTC+2</option>
+          <option value="3">UTC+3</option>
+          <option value="4">UTC+4</option>
+          <option value="5">UTC+5</option>
+          <option value="6">UTC+6</option>
+          <option value="7">UTC+7</option>
+          <option value="8">UTC+8</option>
+          <option value="9">UTC+9</option>
+          <option value="10">UTC+10</option>
+          <option value="11">UTC+11</option>
+          <option value="12">UTC+12</option>
+          <option value="13">UTC+13</option>
+          <option value="14">UTC+14</option>
+        </select>
       </div>
 
       <div class="field">
@@ -332,7 +373,7 @@
           </div>
           <div>
             <input type="radio" id="service-extended" name="serviceType" value="extended" />
-            <label for="service-extended">Extended „e“</label>
+            <label for="service-extended">„e“</label>
           </div>
         </div>
       </div>
@@ -349,7 +390,7 @@
       </div>
 
       <div class="field">
-        <label for="taxi">Taxi-in</label>
+        <label for="taxi">Taxi</label>
         <input type="time" id="taxi" value="00:10" />
       </div>
     </div>
@@ -366,24 +407,26 @@
       <div class="result-box">
         <div class="result-label">Maximální FDP</div>
         <div class="result-value" id="maxFdp">--:--</div>
-        <div class="result-sub" id="fdpEndText">Konec duty: --:-- local</div>
+        <div class="result-sub" id="fdpEndText">Konec duty: --:-- local / --:-- UTC</div>
       </div>
 
       <div class="result-box orange">
         <div class="result-label">Maximální FDP s kapitánským prodloužením</div>
         <div class="result-value" id="maxFdpCaptain">--:--</div>
-        <div class="result-sub" id="fdpEndCaptainText">Konec duty: --:-- local</div>
+        <div class="result-sub" id="fdpEndCaptainText">Konec duty: --:-- local / --:-- UTC</div>
       </div>
 
       <div class="small-grid">
         <div class="mini">
           <div class="k">Latest departure</div>
-          <div class="v" id="latestDeparture">--:--</div>
+          <div class="v" id="latestDeparture">--:-- local</div>
+          <div class="subv" id="latestDepartureUtc">--:-- UTC</div>
         </div>
 
         <div class="mini">
           <div class="k">Latest departure + CPT ext</div>
-          <div class="v" id="latestDepartureCaptain">--:--</div>
+          <div class="v" id="latestDepartureCaptain">--:-- local</div>
+          <div class="subv" id="latestDepartureCaptainUtc">--:-- UTC</div>
         </div>
 
         <div class="mini">
@@ -403,7 +446,7 @@
     </div>
 
     <div class="footer-note">
-      Výsledek si vždy sám ověř.
+      Tabulka se vyhodnocuje podle lokálního času reportingu. UTC se dopočítává jen pro přehled do kokpitu.
     </div>
   </section>
 
