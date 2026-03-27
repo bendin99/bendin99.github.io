@@ -1,4 +1,4 @@
-// Základní tabulka
+// Základní tabulka - lokální čas
 const BASE_TABLE = [
   { start: "00:00", end: "04:59", values: ["11:00", "11:00", "10:30", "10:00", "09:30"] },
   { start: "05:00", end: "05:14", values: ["12:00", "12:00", "11:30", "11:00", "10:30"] },
@@ -21,7 +21,7 @@ const BASE_TABLE = [
   { start: "19:00", end: "23:59", values: ["11:00", "11:00", "10:30", "10:00", "09:30"] }
 ];
 
-// Extended „e“ tabulka
+// Tabulka „e” - lokální čas
 const EXTENDED_TABLE = [
   { start: "19:00", end: "04:59", values: ["11:00", "11:00", "10:30", "10:00", "09:30"], overnight: true },
   { start: "05:00", end: "05:14", values: ["12:00", "12:00", "11:30", "11:00", "10:30"] },
@@ -71,9 +71,9 @@ function minutesToDuration(totalMinutes) {
   return `${sign}${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`;
 }
 
-function getNowUtcMinutes() {
+function getNowLocalMinutes() {
   const now = new Date();
-  return now.getUTCHours() * 60 + now.getUTCMinutes();
+  return now.getHours() * 60 + now.getMinutes();
 }
 
 function getSelectedServiceType() {
@@ -165,8 +165,8 @@ function renderResults(result) {
   if (result.error) {
     document.getElementById("maxFdp").textContent = "--:--";
     document.getElementById("maxFdpCaptain").textContent = "--:--";
-    document.getElementById("fdpEndText").textContent = "Konec duty: --:-- UTC";
-    document.getElementById("fdpEndCaptainText").textContent = "Konec duty: --:-- UTC";
+    document.getElementById("fdpEndText").textContent = "Konec duty: --:-- local";
+    document.getElementById("fdpEndCaptainText").textContent = "Konec duty: --:-- local";
     document.getElementById("latestDeparture").textContent = "--:--";
     document.getElementById("latestDepartureCaptain").textContent = "--:--";
     document.getElementById("countdownNormal").textContent = "--:--";
@@ -181,21 +181,21 @@ function renderResults(result) {
   document.getElementById("maxFdpCaptain").textContent = minutesToDuration(result.maxFdpCaptain);
 
   document.getElementById("fdpEndText").textContent =
-    `Konec duty: ${minutesToTime(result.dutyEnd)} UTC`;
+    `Konec duty: ${minutesToTime(result.dutyEnd)} local`;
 
   document.getElementById("fdpEndCaptainText").textContent =
-    `Konec duty: ${minutesToTime(result.dutyEndCaptain)} UTC`;
+    `Konec duty: ${minutesToTime(result.dutyEndCaptain)} local`;
 
   document.getElementById("latestDeparture").textContent =
-    `${minutesToTime(result.latestDeparture)} UTC`;
+    `${minutesToTime(result.latestDeparture)} local`;
 
   document.getElementById("latestDepartureCaptain").textContent =
-    `${minutesToTime(result.latestDepartureCaptain)} UTC`;
+    `${minutesToTime(result.latestDepartureCaptain)} local`;
 
   let infoText = "";
   if (result.serviceType === "extended") {
     infoText =
-      `Služba je počítaná z tabulky extended „e“. Oproti základní tabulce je plánované prodloužení ${minutesToDuration(result.plannedExtensionDifference)}. ` +
+      `Služba je počítaná z tabulky „e“. Oproti základní tabulce je plánované prodloužení ${minutesToDuration(result.plannedExtensionDifference)}. ` +
       `Kapitánské prodloužení přidává ještě ${minutesToDuration(result.captainExtraApplied)}.`;
   } else {
     infoText =
@@ -216,9 +216,9 @@ function renderResults(result) {
   updateCountdowns();
 }
 
-function getCountdownText(targetUtcMinutes) {
-  const now = getNowUtcMinutes();
-  let diff = targetUtcMinutes - now;
+function getCountdownText(targetLocalMinutes) {
+  const now = getNowLocalMinutes();
+  let diff = targetLocalMinutes - now;
 
   if (diff < 0) {
     diff += 1440;
