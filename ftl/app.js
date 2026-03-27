@@ -21,7 +21,7 @@ const BASE_TABLE = [
   { start: "19:00", end: "23:59", values: ["11:00", "11:00", "10:30", "10:00", "09:30"] }
 ];
 
-// Extended “e” tabulka
+// Extended „e“ tabulka
 const EXTENDED_TABLE = [
   { start: "19:00", end: "04:59", values: ["11:00", "11:00", "10:30", "10:00", "09:30"], overnight: true },
   { start: "05:00", end: "05:14", values: ["12:00", "12:00", "11:30", "11:00", "10:30"] },
@@ -195,7 +195,7 @@ function renderResults(result) {
   let infoText = "";
   if (result.serviceType === "extended") {
     infoText =
-      `Služba je počítaná z tabulky extended “e”. Oproti základní tabulce je plánované prodloužení ${minutesToDuration(result.plannedExtensionDifference)}. ` +
+      `Služba je počítaná z tabulky extended „e“. Oproti základní tabulce je plánované prodloužení ${minutesToDuration(result.plannedExtensionDifference)}. ` +
       `Kapitánské prodloužení přidává ještě ${minutesToDuration(result.captainExtraApplied)}.`;
   } else {
     infoText =
