@@ -208,14 +208,9 @@ button.small{padding:8px 10px;font-size:.9rem;flex:0 0 calc(50% - 4px)}
     <div class="card">
       <h2>Souhrn</h2>
       <div class="summary">
-        <div class="stat"><span class="muted">Sedadla s daty</span><b id="countSeats">0</b></div>
+        <div class="stat"><span class="muted">Special PAX</span><b id="countSpecialPax">0</b></div>
         <div class="stat"><span class="muted">Extra catering</span><b id="countCatering">0</b></div>
         <div class="stat"><span class="muted">Fresh produkty</span><b id="countFresh">0</b></div>
-      </div>
-      <div style="height:10px"></div>
-      <div class="row">
-        <button id="freshSummaryBtn" class="secondary small">Souhrn freshů</button>
-        <button id="cateringSummaryBtn" class="secondary small">Souhrn cateringu</button>
       </div>
     </div>
 
@@ -242,13 +237,27 @@ button.small{padding:8px 10px;font-size:.9rem;flex:0 0 calc(50% - 4px)}
     </div>
 
     <div class="card">
-      <h2>Special PAX přehled</h2>
+      <div class="row space-between" style="margin-bottom:8px">
+        <h2 style="margin:0">Special PAX přehled</h2>
+        <button id="specialPaxSummaryBtn" class="secondary small">Souhrn special PAX</button>
+      </div>
       <div class="list" id="specialPaxList"></div>
     </div>
 
     <div class="card">
-      <h2>Fresh přehled</h2>
+      <div class="row space-between" style="margin-bottom:8px">
+        <h2 style="margin:0">Fresh přehled</h2>
+        <button id="freshSummaryBtn" class="secondary small">Souhrn freshů</button>
+      </div>
       <div class="list" id="freshList"></div>
+    </div>
+
+    <div class="card">
+      <div class="row space-between" style="margin-bottom:8px">
+        <h2 style="margin:0">Přehled cateringu</h2>
+        <button id="cateringSummaryBtn" class="secondary small">Souhrn cateringu</button>
+      </div>
+      <div class="list" id="cateringList"></div>
     </div>
 
     <div class="card">
@@ -607,7 +616,10 @@ function loadState(){
 
 function updateSummary(){
   const entries = Object.values(state.seats);
-  document.getElementById('countSeats').textContent = entries.length;
+  document.getElementById('countSpecialPax').textContent = entries.reduce((sum, d) => {
+    const custom = (d.customPax || '').trim() ? 1 : 0;
+    return sum + (d.specialPax || []).length + custom;
+  }, 0);
   document.getElementById('countCatering').textContent = entries.filter(d => hasCounts(d.extraCatering) || (d.customCatering || '').trim()).length;
   document.getElementById('countFresh').textContent = entries.reduce((sum, d) => sum + totalCounts(d.fresh), 0);
 }
@@ -655,6 +667,60 @@ function renderFreshList(){
   });
 }
 
+function renderCateringList(){
+  const box = document.getElementById('cateringList');
+  if(!box) return;
+  box.innerHTML = '';
+  const items = Object.entries(state.seats)
+    .map(([seat,d]) => ({
+      seat,
+      catering: [summarizeCounts(d.extraCatering), (d.customCatering || '').trim()].filter(Boolean).join('; '),
+      note: d.note || ''
+    }))
+    .filter(x => x.catering)
+    .sort((a,b) => seatSort(a.seat,b.seat));
+
+  if(!items.length){ box.innerHTML = '<div class="muted">Zatím nic.</div>'; return; }
+  items.forEach(item => {
+    const div = document.createElement('div');
+    div.className = 'list-item';
+    div.innerHTML = `<strong>${item.seat}</strong><div>${escapeHtml(item.catering)}</div>${item.note ? `<div class="muted">${escapeHtml(item.note)}</div>` : ''}`;
+    box.appendChild(div);
+  });
+}
+
+function openSpecialPaxSummaryModal(){
+  const title = document.getElementById('summaryTitle');
+  const content = document.getElementById('summaryContent');
+  content.innerHTML = '';
+  title.textContent = 'Souhrn special PAX';
+
+  const aggregate = {};
+  const rows = Object.entries(state.seats)
+    .map(([seat, d]) => {
+      const pax = [...(d.specialPax || []), ...(((d.customPax || '').trim()) ? [(d.customPax || '').trim()] : [])];
+      pax.forEach(code => { aggregate[code] = (aggregate[code] || 0) + 1; });
+      return { seat, pax, note: d.note || '' };
+    })
+    .filter(x => x.pax.length)
+    .sort((a,b) => seatSort(a.seat,b.seat));
+
+  const totalBox = document.createElement('div');
+  totalBox.className = 'summary-row';
+  const totalParts = Object.entries(aggregate).sort().map(([k,v]) => `${v}× ${k}`);
+  totalBox.innerHTML = `<strong>Celkem:</strong><div style="margin-top:6px">${totalParts.length ? escapeHtml(totalParts.join(', ')) : 'Zatím nic.'}</div>`;
+  content.appendChild(totalBox);
+
+  rows.forEach(item => {
+    const div = document.createElement('div');
+    div.className = 'summary-row';
+    div.innerHTML = `<strong>${item.seat}</strong><div style="margin-top:6px">${escapeHtml(item.pax.join(', '))}</div>${item.note ? `<div class="muted" style="margin-top:6px">${escapeHtml(item.note)}</div>` : ''}`;
+    content.appendChild(div);
+  });
+
+  document.getElementById('summaryModal').classList.add('open');
+}
+
 function openSummaryModal(type){
   const title = document.getElementById('summaryTitle');
   const content = document.getElementById('summaryContent');
@@ -693,7 +759,7 @@ function openSummaryModal(type){
 }
 
 function closeSummaryModal(){ document.getElementById('summaryModal').classList.remove('open'); }
-function renderAll(){ applyTheme(); renderSeatMap(); updateSummary(); renderSpecialPaxList(); renderFreshList(); }
+function renderAll(){ applyTheme(); renderSeatMap(); updateSummary(); renderSpecialPaxList(); renderFreshList(); renderCateringList(); }
 
 function exportJson(){
   persist();
@@ -785,6 +851,7 @@ document.getElementById('themeBtn').addEventListener('click', toggleTheme);
 document.getElementById('toggle6defBtn').addEventListener('click', toggle6def);
 document.getElementById('freshSummaryBtn').addEventListener('click', () => openSummaryModal('fresh'));
 document.getElementById('cateringSummaryBtn').addEventListener('click', () => openSummaryModal('catering'));
+document.getElementById('specialPaxSummaryBtn').addEventListener('click', openSpecialPaxSummaryModal);
 document.getElementById('closeSummaryModal').addEventListener('click', closeSummaryModal);
 document.getElementById('seatModal').addEventListener('click', e => { if(e.target.id === 'seatModal') closeSeatModal(); });
 document.getElementById('summaryModal').addEventListener('click', e => { if(e.target.id === 'summaryModal') closeSummaryModal(); });
