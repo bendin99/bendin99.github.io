@@ -243,6 +243,7 @@ button.small{padding:8px 10px;font-size:.9rem;flex:0 0 calc(50% - 4px)}
       <div class="timer-grid">
         <div class="timer-box">
           <h2 style="margin:0 0 6px">Minutka</h2>
+          <div class="muted">Odpočítává zadanou dobu letu od času startu, nebo od okamžiku spuštění.</div>
           <div class="timer-display" id="countdownDisplay">--:--:--</div>
           <div class="timer-actions">
             <button id="countdownStartBtn" class="secondary">Spustit</button>
@@ -251,6 +252,7 @@ button.small{padding:8px 10px;font-size:.9rem;flex:0 0 calc(50% - 4px)}
         </div>
         <div class="timer-box">
           <h2 style="margin:0 0 6px">Stopky</h2>
+          <div class="muted">Počítají od času startu, nebo od okamžiku spuštění.</div>
           <div class="timer-display" id="stopwatchDisplay">--:--:--</div>
           <div class="timer-actions">
             <button id="stopwatchStartBtn" class="secondary">Spustit</button>
@@ -883,6 +885,9 @@ function jumpToSeat(){
 
 let countdownInterval = null;
 let stopwatchInterval = null;
+let countdownStartAt = null;
+let countdownDurationSeconds = null;
+let stopwatchStartAt = null;
 
 function parseTimeToToday(timeStr){
   if(!timeStr || !/^\d{2}:\d{2}$/.test(timeStr)) return null;
@@ -911,54 +916,53 @@ function stopStopwatch(){
   if(stopwatchInterval){ clearInterval(stopwatchInterval); stopwatchInterval = null; }
 }
 function updateCountdownDisplay(){
-  const start = parseTimeToToday(document.getElementById('startTime').value);
-  const duration = parseDuration(document.getElementById('flightTime').value);
   const display = document.getElementById('countdownDisplay');
-  if(!start || duration === null){
+  if(!countdownStartAt || countdownDurationSeconds === null){
     display.textContent = '--:--:--';
     return;
   }
-  const end = new Date(start.getTime() + duration * 1000);
+  const end = new Date(countdownStartAt.getTime() + countdownDurationSeconds * 1000);
   const diff = Math.floor((end.getTime() - Date.now()) / 1000);
   display.textContent = formatHMS(diff);
 }
 function updateStopwatchDisplay(){
-  const start = parseTimeToToday(document.getElementById('startTime').value);
   const display = document.getElementById('stopwatchDisplay');
-  if(!start){
+  if(!stopwatchStartAt){
     display.textContent = '--:--:--';
     return;
   }
-  const diff = Math.floor((Date.now() - start.getTime()) / 1000);
+  const diff = Math.floor((Date.now() - stopwatchStartAt.getTime()) / 1000);
   display.textContent = formatHMS(diff);
 }
 function startCountdown(){
-  const start = parseTimeToToday(document.getElementById('startTime').value);
   const duration = parseDuration(document.getElementById('flightTime').value);
-  if(!start || duration === null){
-    alert('Zadej nejdřív Čas startu a Dobu letu.');
+  if(duration === null){
+    alert('Zadej nejdřív Dobu letu.');
     return;
   }
+  const explicitStart = parseTimeToToday(document.getElementById('startTime').value);
+  countdownStartAt = explicitStart || new Date();
+  countdownDurationSeconds = duration;
   stopCountdown();
   updateCountdownDisplay();
   countdownInterval = setInterval(updateCountdownDisplay, 1000);
 }
 function resetCountdown(){
   stopCountdown();
+  countdownStartAt = null;
+  countdownDurationSeconds = null;
   document.getElementById('countdownDisplay').textContent = '--:--:--';
 }
 function startStopwatch(){
-  const start = parseTimeToToday(document.getElementById('startTime').value);
-  if(!start){
-    alert('Zadej nejdřív Čas startu.');
-    return;
-  }
+  const explicitStart = parseTimeToToday(document.getElementById('startTime').value);
+  stopwatchStartAt = explicitStart || new Date();
   stopStopwatch();
   updateStopwatchDisplay();
   stopwatchInterval = setInterval(updateStopwatchDisplay, 1000);
 }
 function resetStopwatch(){
   stopStopwatch();
+  stopwatchStartAt = null;
   document.getElementById('stopwatchDisplay').textContent = '--:--:--';
 }
 
@@ -1028,7 +1032,24 @@ document.getElementById('routing').addEventListener('input', e => {
 document.getElementById('routing').addEventListener('input', persist);
 document.getElementById('flightTime').addEventListener('input', persist);
 document.getElementById('paxCount').addEventListener('input', e => {
-  e.target.value = e.target.value.replace(/[^0-9+]/g,'');
+  let val = e.target.value.replace(/[^0-9+]/g,'');
+  const digits = val.replace(/\+/g,'');
+  const hasPlus = val.includes('+');
+
+  if(hasPlus){
+    const parts = val.split('+');
+    const left = (parts[0] || '').replace(/\D/g,'').slice(0,3);
+    const right = (parts[1] || '').replace(/\D/g,'').slice(0,2);
+    val = left + '+' + right;
+  } else {
+    if(digits.length >= 3){
+      val = digits.slice(0,3) + '+';
+    } else {
+      val = digits.slice(0,2);
+    }
+  }
+
+  e.target.value = val;
   persist();
 });
 document.getElementById('generalNote').addEventListener('input', persist);
