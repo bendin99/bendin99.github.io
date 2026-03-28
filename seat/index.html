@@ -83,6 +83,7 @@ h2{font-size:1rem}
 p,label,small{color:var(--muted)}
 .card{background:var(--panel);border:1px solid var(--line);border-radius:18px;box-shadow:var(--shadow);padding:14px;margin-bottom:12px}
 .row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.row button{flex:1;min-width:120px;text-align:center}
 .space-between{justify-content:space-between}
 input,textarea,button,select{font:inherit}
 input[type=text],textarea{
@@ -94,7 +95,7 @@ button.secondary{background:var(--panel-soft);color:var(--text);border:1px solid
 button.warn{background:var(--orange);color:#fff}
 button.danger{background:#d92d20;color:#fff}
 button.ghost{background:transparent;color:var(--text);border:1px solid var(--line)}
-button.small{padding:8px 10px;font-size:.9rem}
+button.small{padding:8px 10px;font-size:.9rem;flex:0 0 auto}
 .summary{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
 .stat{background:var(--panel-soft);border:1px solid var(--line);border-radius:14px;padding:10px}
 .stat b{display:block;font-size:1.15rem;color:var(--heading)}
@@ -155,7 +156,7 @@ button.small{padding:8px 10px;font-size:.9rem}
 
 .search-grid{display:grid;grid-template-columns:1fr auto;gap:8px}
 .search-grid input{min-width:0}
-.search-action{display:flex;align-items:end}
+.search-action{display:flex;align-items:end;justify-content:flex-end}
 @media (max-width:1100px){.app{grid-template-columns:1fr}.sidebar{position:relative;height:auto}}
 @media (max-width:820px){
   .main,.sidebar{padding:12px}
@@ -198,10 +199,10 @@ button.small{padding:8px 10px;font-size:.9rem}
     <div class="card">
       <h2>Let / poznámka</h2>
       <label for="flightNo">Číslo letu / routing</label>
-      <input id="flightNo" type="text" placeholder="QS1234 PRG–PMI" />
+      <input id="flightNo" type="text" />
       <div style="height:8px"></div>
       <label for="generalNote">Obecná poznámka</label>
-      <textarea id="generalNote" placeholder="Např. 2× WCHR, 1× UMNR, turbulence, full flight..."></textarea>
+      <textarea id="generalNote"></textarea>
     </div>
 
     <div class="card">
@@ -223,7 +224,7 @@ button.small{padding:8px 10px;font-size:.9rem}
       <div class="legend-grid">
         <div class="legend-item"><span class="swatch" style="background:var(--seat)"></span> běžné sedadlo</div>
         <div class="legend-item"><span class="swatch" style="background:var(--exit)"></span> exit row</div>
-        <div class="legend-item"><span class="swatch" style="background:var(--seat-selected)"></span> vybrané sedadlo</div>
+        <div class="legend-item"><span class="swatch" style="background:var(--seat-selected)"></span> vybraná sedadlo</div>
         <div class="legend-item"><span class="swatch" style="background:var(--pill-fresh-bg)"></span> fresh produkty</div>
         <div class="legend-item"><span class="swatch" style="background:var(--pill-pax-bg)"></span> special PAX</div>
         <div class="legend-item"><span class="swatch" style="background:var(--pill-catering-bg)"></span> extra catering</div>
@@ -266,7 +267,6 @@ button.small{padding:8px 10px;font-size:.9rem}
       </div>
       <div style="height:8px"></div>
       <div class="row">
-        <button id="sampleBtn" class="secondary">Ukázková data</button>
         <button id="clearBtn" class="danger">Vymazat vše</button>
       </div>
       <input type="file" id="importFile" accept=".json" style="display:none" />
@@ -276,7 +276,7 @@ button.small{padding:8px 10px;font-size:.9rem}
     <div class="card">
       <h2>Vyhledání sedadla</h2>
       <div class="search-grid">
-        <input id="seatRowInput" type="tel" inputmode="numeric" pattern="[0-9]*" placeholder="Řada" />
+        <input id="seatRowInput" type="tel" inputmode="numeric" pattern="[0-9]*" />
         <div class="search-action"><button id="findBtn" class="ghost">Najít</button></div>
       </div>
       <div class="letter-picker" id="letterPicker">
@@ -306,10 +306,10 @@ button.small{padding:8px 10px;font-size:.9rem}
       </div>
 
       <section class="seatmap">
-        <div id="noseLabel" class="aircraft-head">NOSE / ROW 1</div>
+        <div id="noseLabel" class="aircraft-head"></div>
         <div class="grid-header" id="gridHeader"></div>
         <div id="seatRows"></div>
-        <div id="tailLabel" class="aircraft-tail">TAIL / ROW 34</div>
+        <div id="tailLabel" class="aircraft-tail"></div>
       </section>
     </div>
   </main>
@@ -319,7 +319,7 @@ button.small{padding:8px 10px;font-size:.9rem}
   <div class="modal-box">
     <div class="row space-between" style="margin-bottom:12px;">
       <div>
-        <h2 id="modalTitle">Sedadlo</h2>
+        <h2 id="modalTitle">sedadlo</h2>
         <small>Kombinuj fresh produkty, special PAX a extra catering.</small>
       </div>
       <button id="closeModal" class="secondary">Zavřít</button>
@@ -348,7 +348,7 @@ button.small{padding:8px 10px;font-size:.9rem}
         </div>
         <div style="height:8px"></div>
         <label for="customPax">Vlastní kód / poznámka k PAX</label>
-        <input id="customPax" type="text" placeholder="Např. MEDA, DPNA, VIP..." />
+        <input id="customPax" type="text" />
       </div>
 
       <div class="section-block mobile-order-3">
@@ -357,13 +357,13 @@ button.small{padding:8px 10px;font-size:.9rem}
         <div class="cart" id="cateringCart"></div>
         <div style="height:10px"></div>
         <label for="customCatering">Vlastní extra catering</label>
-        <input id="customCatering" type="text" placeholder="Např. vlastní kód nebo poznámka" />
+        <input id="customCatering" type="text" />
       </div>
 
       <div class="section-block mobile-order-4">
         <div class="section-title">Poznámka</div>
         <label for="seatNote">Poznámka k sedadle</label>
-        <textarea id="seatNote" placeholder="Např. donést po první trolley service nebo přinést vše najednou"></textarea>
+        <textarea id="seatNote"></textarea>
       </div>
     </div>
 
@@ -431,8 +431,8 @@ function renderSeatMap(){
   renderHeader();
 
   document.getElementById('orientationLabel').textContent = state.reverse ? '34 → 1 / FED CBA' : '1 → 34 / ABC DEF';
-  document.getElementById('noseLabel').textContent = state.reverse ? 'NOSE / ROW 34' : 'NOSE / ROW 1';
-  document.getElementById('tailLabel').textContent = state.reverse ? 'TAIL / ROW 1' : 'TAIL / ROW 34';
+  document.getElementById('noseLabel').textContent = '';
+  document.getElementById('tailLabel').textContent = '';
   document.getElementById('toggle6defBtn').textContent = state.show6def ? 'Skrýt 6DEF' : 'Zobrazit 6DEF';
 
   for(const row of rows){
@@ -741,7 +741,7 @@ function jumpToSeat(){
   const el = document.querySelector(`[data-seat="${value}"]`);
   if(!el){ alert('sedadlo nebyla nalezena.'); return; }
   el.scrollIntoView({behavior:'smooth', block:'center'});
-  if(isSeatDisabled(value)){ alert('Sedadlo je momentálně neaktivní. Použij nejdřív "Zobrazit 6DEF".'); return; }
+  if(isSeatDisabled(value)){ alert('sedadlo je momentálně neaktivní. Použij nejdřív "Zobrazit 6DEF".'); return; }
   openSeatModal(value);
 }
 
@@ -802,7 +802,6 @@ document.getElementById('seatRowInput').addEventListener('keydown', e => { if(e.
 document.getElementById('exportBtn').addEventListener('click', exportJson);
 document.getElementById('importBtn').addEventListener('click', () => document.getElementById('importFile').click());
 document.getElementById('importFile').addEventListener('change', e => { if(e.target.files[0]) importJson(e.target.files[0]); e.target.value = ''; });
-document.getElementById('sampleBtn').addEventListener('click', loadSample);
 document.getElementById('clearBtn').addEventListener('click', () => {
   if(confirm('Opravdu vymazat všechna data?')){
     state = { flightNo:'', generalNote:'', reverse:false, dark:false, show6def:false, seats:{} };
