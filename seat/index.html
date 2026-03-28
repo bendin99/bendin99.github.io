@@ -193,21 +193,20 @@ button.small{padding:8px 10px;font-size:.9rem}
 <div class="app">
   <aside class="sidebar">
     <h1>B738 seat map</h1>
-    <p>Responzivní verze s přepínáním motivu, souhrny a možností skrýt 6DEF.</p>
 
     <div class="card">
       <h2>Let / poznámka</h2>
       <label for="flightNo">Číslo letu / routing</label>
-      <input id="flightNo" type="text" placeholder="QS1234 PRG–PMI" />
+      <input id="flightNo" type="text" placeholder="QS1440 BRQ-HRG" />
       <div style="height:8px"></div>
       <label for="generalNote">Obecná poznámka</label>
-      <textarea id="generalNote" placeholder="Např. 2× WCHR, 1× UMNR, turbulence, full flight..."></textarea>
+      <textarea id="generalNote" placeholder="Např. kolik cukru do kávy pro pana CPT..."></textarea>
     </div>
 
     <div class="card">
       <h2>Souhrn</h2>
       <div class="summary">
-        <div class="stat"><span class="muted">Sedačky s daty</span><b id="countSeats">0</b></div>
+        <div class="stat"><span class="muted">Sedadla s daty</span><b id="countSeats">0</b></div>
         <div class="stat"><span class="muted">Extra catering</span><b id="countCatering">0</b></div>
         <div class="stat"><span class="muted">Fresh kusy</span><b id="countFresh">0</b></div>
       </div>
@@ -221,9 +220,9 @@ button.small{padding:8px 10px;font-size:.9rem}
     <div class="card">
       <h2>Legenda</h2>
       <div class="legend-grid">
-        <div class="legend-item"><span class="swatch" style="background:var(--seat)"></span> běžná sedačka</div>
+        <div class="legend-item"><span class="swatch" style="background:var(--seat)"></span> běžné sedadlo</div>
         <div class="legend-item"><span class="swatch" style="background:var(--exit)"></span> exit row</div>
-        <div class="legend-item"><span class="swatch" style="background:var(--seat-selected)"></span> vybraná sedačka</div>
+        <div class="legend-item"><span class="swatch" style="background:var(--seat-selected)"></span> vybrané sedadlo</div>
         <div class="legend-item"><span class="swatch" style="background:var(--pill-fresh-bg)"></span> fresh produkty</div>
         <div class="legend-item"><span class="swatch" style="background:var(--pill-pax-bg)"></span> special PAX</div>
         <div class="legend-item"><span class="swatch" style="background:var(--pill-catering-bg)"></span> extra catering</div>
@@ -261,8 +260,8 @@ button.small{padding:8px 10px;font-size:.9rem}
       </div>
       <div style="height:10px"></div>
       <div class="row">
-        <button id="exportBtn">Export JSON</button>
-        <button id="importBtn" class="secondary">Import JSON</button>
+        <button id="exportBtn">Export dat</button>
+        <button id="importBtn" class="secondary">Import dat</button>
       </div>
       <div style="height:8px"></div>
       <div class="row">
@@ -274,7 +273,7 @@ button.small{padding:8px 10px;font-size:.9rem}
     </div>
 
     <div class="card">
-      <h2>Vyhledání sedačky</h2>
+      <h2>Vyhledání sedadla</h2>
       <div class="search-grid">
         <input id="seatRowInput" type="tel" inputmode="numeric" pattern="[0-9]*" placeholder="Řada" />
         <div class="search-action"><button id="findBtn" class="ghost">Najít</button></div>
@@ -297,7 +296,6 @@ button.small{padding:8px 10px;font-size:.9rem}
       <div class="topbar">
         <div>
           <h2 style="font-size:1.25rem">Boeing 737-800</h2>
-          <p>Řady 1–34, bez řad 15 a 16. Nouzové východy na 17 a 18.</p>
         </div>
         <div class="row">
           <div class="muted">Směr mapy:</div>
@@ -305,12 +303,7 @@ button.small{padding:8px 10px;font-size:.9rem}
         </div>
       </div>
 
-      <section class="seatmap">
-        <div id="noseLabel" class="aircraft-head">NOSE / ROW 1</div>
-        <div class="grid-header" id="gridHeader"></div>
-        <div id="seatRows"></div>
-        <div id="tailLabel" class="aircraft-tail">TAIL / ROW 34</div>
-      </section>
+      
     </div>
   </main>
 </div>
@@ -319,8 +312,8 @@ button.small{padding:8px 10px;font-size:.9rem}
   <div class="modal-box">
     <div class="row space-between" style="margin-bottom:12px;">
       <div>
-        <h2 id="modalTitle">Sedačka</h2>
-        <small>Kombinuj fresh produkty, special PAX a extra catering.</small>
+        <h2 id="modalTitle">Sedadlo</h2>
+        <small></small>
       </div>
       <button id="closeModal" class="secondary">Zavřít</button>
     </div>
@@ -347,8 +340,8 @@ button.small{padding:8px 10px;font-size:.9rem}
           <label><input type="checkbox" value="PETC" /> PETC</label>
         </div>
         <div style="height:8px"></div>
-        <label for="customPax">Vlastní kód / poznámka k PAX</label>
-        <input id="customPax" type="text" placeholder="Např. MEDA, DPNA, VIP..." />
+        <label for="customPax">Vlastní kód/poznámka k PAX</label>
+        <input id="customPax" type="text" placeholder="" />
       </div>
 
       <div class="section-block mobile-order-3">
@@ -357,19 +350,19 @@ button.small{padding:8px 10px;font-size:.9rem}
         <div class="cart" id="cateringCart"></div>
         <div style="height:10px"></div>
         <label for="customCatering">Vlastní extra catering</label>
-        <input id="customCatering" type="text" placeholder="Např. vlastní kód nebo poznámka" />
+        <input id="customCatering" type="text" placeholder="Na co není tlačítko." />
       </div>
 
       <div class="section-block mobile-order-4">
         <div class="section-title">Poznámka</div>
-        <label for="seatNote">Poznámka k sedačce</label>
-        <textarea id="seatNote" placeholder="Např. donést po první trolley service nebo přinést vše najednou"></textarea>
+        <label for="seatNote"></label>
+        <textarea id="seatNote" placeholder="Např. jaký nápoj k extra cateringu."></textarea>
       </div>
     </div>
 
     <div class="sticky-actions">
       <div class="row space-between">
-        <button id="deleteSeatData" class="danger">Smazat data sedačky</button>
+        <button id="deleteSeatData" class="danger">Smazat data sedadla</button>
         <button id="saveSeatData">Uložit</button>
       </div>
     </div>
@@ -739,9 +732,9 @@ function jumpToSeat(){
   const value = buildSeatFromInputs();
   if(!value) return;
   const el = document.querySelector(`[data-seat="${value}"]`);
-  if(!el){ alert('Sedačka nebyla nalezena.'); return; }
+  if(!el){ alert('Sedadlo nebylo nalezena.'); return; }
   el.scrollIntoView({behavior:'smooth', block:'center'});
-  if(isSeatDisabled(value)){ alert('Sedačka je momentálně neaktivní. Použij nejdřív "Zobrazit 6DEF".'); return; }
+  if(isSeatDisabled(value)){ alert('Sedadlo je momentálně neaktivní. Použij nejdřív "Zobrazit 6DEF".'); return; }
   openSeatModal(value);
 }
 
