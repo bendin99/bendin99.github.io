@@ -1,0 +1,824 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>B738 Seat Map – special meals / PAX / fresh</title>
+<style>
+  :root{
+    --bg:#0f172a;
+    --panel:#111827;
+    --panel2:#1f2937;
+    --muted:#94a3b8;
+    --text:#e5e7eb;
+    --accent:#22c55e;
+    --accent2:#38bdf8;
+    --warn:#f59e0b;
+    --danger:#ef4444;
+    --seat:#e2e8f0;
+    --seatText:#111827;
+    --selected:#93c5fd;
+    --exit:#fef3c7;
+    --blocked:#cbd5e1;
+    --tagMeal:#2563eb;
+    --tagPax:#7c3aed;
+    --tagFresh:#ea580c;
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0;
+    font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+    background:linear-gradient(180deg,#020617,#0f172a 35%,#111827);
+    color:var(--text);
+  }
+  .app{
+    display:grid;
+    grid-template-columns: 330px 1fr;
+    min-height:100vh;
+  }
+  .sidebar{
+    background:rgba(17,24,39,.92);
+    border-right:1px solid rgba(148,163,184,.18);
+    padding:18px;
+    position:sticky;
+    top:0;
+    height:100vh;
+    overflow:auto;
+  }
+  .main{
+    padding:18px 18px 40px;
+    overflow:auto;
+  }
+  h1,h2,h3{margin:0 0 10px}
+  h1{font-size:1.3rem}
+  h2{font-size:1rem; margin-top:18px}
+  p, label, small {color:var(--muted)}
+  .card{
+    background:rgba(31,41,55,.9);
+    border:1px solid rgba(148,163,184,.15);
+    border-radius:16px;
+    padding:14px;
+    margin-bottom:12px;
+  }
+  .row{
+    display:flex;
+    gap:8px;
+    flex-wrap:wrap;
+    align-items:center;
+  }
+  input, textarea, select, button{
+    font:inherit;
+  }
+  input[type="text"], textarea, select{
+    width:100%;
+    background:#0b1220;
+    color:var(--text);
+    border:1px solid rgba(148,163,184,.2);
+    border-radius:10px;
+    padding:10px 12px;
+    outline:none;
+  }
+  textarea{min-height:90px; resize:vertical}
+  button{
+    border:none;
+    border-radius:10px;
+    padding:10px 12px;
+    cursor:pointer;
+    background:#2563eb;
+    color:white;
+    font-weight:600;
+  }
+  button.secondary{background:#334155}
+  button.warn{background:#b45309}
+  button.danger{background:#b91c1c}
+  button.ghost{
+    background:transparent;
+    border:1px solid rgba(148,163,184,.25);
+  }
+  .legend{
+    display:grid;
+    grid-template-columns: repeat(2, minmax(0,1fr));
+    gap:8px;
+  }
+  .legend-item{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    font-size:.9rem;
+  }
+  .swatch{
+    width:14px;height:14px;border-radius:4px;
+    border:1px solid rgba(255,255,255,.25);
+  }
+  .seatmap-wrap{
+    max-width:1220px;
+    margin:0 auto;
+  }
+  .topbar{
+    display:flex;
+    justify-content:space-between;
+    gap:12px;
+    align-items:flex-start;
+    margin-bottom:16px;
+    flex-wrap:wrap;
+  }
+  .seatmap{
+    background:rgba(15,23,42,.85);
+    border:1px solid rgba(148,163,184,.15);
+    border-radius:24px;
+    padding:18px 16px 28px;
+    box-shadow:0 10px 40px rgba(0,0,0,.25);
+  }
+  .aircraft-head, .aircraft-tail{
+    text-align:center;
+    color:#cbd5e1;
+    letter-spacing:.2em;
+    font-size:.8rem;
+    margin:6px 0 14px;
+  }
+  .grid-header, .seat-row{
+    display:grid;
+    grid-template-columns: 42px repeat(3, 1fr) 28px repeat(3,1fr);
+    gap:8px;
+    align-items:center;
+  }
+  .grid-header{
+    margin-bottom:8px;
+    color:#94a3b8;
+    font-size:.82rem;
+    position:sticky;
+    top:0;
+    background:rgba(15,23,42,.95);
+    padding:8px 0;
+    z-index:1;
+  }
+  .seat-row{
+    padding:6px 0;
+    border-bottom:1px dashed rgba(148,163,184,.08);
+  }
+  .seat-row.exit-row{
+    background:linear-gradient(90deg, transparent, rgba(245,158,11,.12), transparent);
+    border-radius:12px;
+  }
+  .rownum{
+    text-align:center;
+    color:#cbd5e1;
+    font-weight:700;
+  }
+  .aisle{
+    text-align:center;
+    color:#64748b;
+    font-size:.75rem;
+  }
+  .seat{
+    min-height:76px;
+    border-radius:14px;
+    border:1px solid rgba(100,116,139,.25);
+    background:var(--seat);
+    color:var(--seatText);
+    padding:8px;
+    position:relative;
+    cursor:pointer;
+    overflow:hidden;
+  }
+  .seat:hover{transform:translateY(-1px)}
+  .seat.selected{outline:3px solid var(--selected)}
+  .seat.exit{background:var(--exit)}
+  .seat.has-data{
+    box-shadow: inset 0 0 0 2px rgba(17,24,39,.08);
+  }
+  .seat-id{
+    font-weight:800;
+    font-size:.92rem;
+    margin-bottom:4px;
+  }
+  .seat-meta{
+    font-size:.7rem;
+    line-height:1.25;
+    display:flex;
+    flex-direction:column;
+    gap:3px;
+  }
+  .pill{
+    display:inline-flex;
+    align-items:center;
+    gap:4px;
+    padding:2px 6px;
+    border-radius:999px;
+    font-size:.68rem;
+    font-weight:700;
+    width:max-content;
+    max-width:100%;
+    white-space:nowrap;
+    overflow:hidden;
+    text-overflow:ellipsis;
+  }
+  .meal{background:rgba(37,99,235,.14); color:#1d4ed8}
+  .pax{background:rgba(124,58,237,.14); color:#6d28d9}
+  .fresh{background:rgba(234,88,12,.14); color:#c2410c}
+  .note{background:rgba(15,23,42,.08); color:#0f172a}
+  .summary{
+    display:grid;
+    grid-template-columns: repeat(3,minmax(0,1fr));
+    gap:10px;
+  }
+  .stat{
+    background:#0b1220;
+    padding:12px;
+    border-radius:12px;
+    border:1px solid rgba(148,163,184,.12);
+  }
+  .stat b{
+    display:block;
+    font-size:1.15rem;
+    color:#fff;
+  }
+  .list{
+    max-height:260px;
+    overflow:auto;
+    padding-right:4px;
+  }
+  .list-item{
+    border:1px solid rgba(148,163,184,.14);
+    border-radius:12px;
+    padding:10px;
+    margin-bottom:8px;
+    background:#0b1220;
+  }
+  .list-item strong{color:#fff}
+  .muted{color:var(--muted)}
+  .modal{
+    position:fixed; inset:0;
+    background:rgba(2,6,23,.72);
+    display:none; align-items:center; justify-content:center;
+    padding:16px; z-index:50;
+  }
+  .modal.open{display:flex}
+  .modal-box{
+    width:min(760px,100%);
+    background:#111827;
+    border:1px solid rgba(148,163,184,.18);
+    border-radius:20px;
+    padding:18px;
+  }
+  .modal-grid{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:14px;
+  }
+  .check-grid{
+    display:grid;
+    grid-template-columns:repeat(2, minmax(0,1fr));
+    gap:8px 10px;
+  }
+  .tagbox{
+    display:flex; flex-wrap:wrap; gap:6px; margin-top:8px;
+  }
+  .tag{
+    background:#0b1220;
+    border:1px solid rgba(148,163,184,.18);
+    color:#e5e7eb;
+    border-radius:999px;
+    padding:6px 10px;
+    cursor:pointer;
+    font-size:.9rem;
+  }
+  .footer-note{
+    margin-top:12px;
+    color:#94a3b8;
+    font-size:.85rem;
+  }
+  .search{
+    width:210px !important;
+  }
+  @media (max-width: 1020px){
+    .app{grid-template-columns:1fr}
+    .sidebar{position:relative;height:auto}
+    .summary{grid-template-columns:1fr}
+  }
+  @media (max-width: 760px){
+    .grid-header, .seat-row{
+      grid-template-columns: 34px repeat(3,1fr) 16px repeat(3,1fr);
+      gap:5px;
+    }
+    .seat{min-height:64px; padding:6px}
+    .seat-id{font-size:.82rem}
+    .seat-meta{font-size:.62rem}
+    .modal-grid{grid-template-columns:1fr}
+    .legend{grid-template-columns:1fr}
+  }
+</style>
+</head>
+<body>
+<div class="app">
+  <aside class="sidebar">
+    <h1>B738 seat map</h1>
+    <p>Interaktivní mapa sedaček pro značení special meals, special PAX a fresh objednávek.</p>
+
+    <div class="card">
+      <h2>Let / poznámka</h2>
+      <label for="flightNo">Číslo letu / routing</label>
+      <input id="flightNo" type="text" placeholder="QS1234 PRG–PMI" />
+      <div style="height:8px"></div>
+      <label for="generalNote">Obecná poznámka</label>
+      <textarea id="generalNote" placeholder="Např. 2× UMNR, 1× DEPA, očekávané turbulence..."></textarea>
+    </div>
+
+    <div class="card">
+      <h2>Souhrn</h2>
+      <div class="summary">
+        <div class="stat"><span class="muted">Sedačky s poznámkou</span><b id="countSeats">0</b></div>
+        <div class="stat"><span class="muted">Special meals</span><b id="countMeals">0</b></div>
+        <div class="stat"><span class="muted">Fresh položky</span><b id="countFresh">0</b></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Legenda</h2>
+      <div class="legend">
+        <div class="legend-item"><span class="swatch" style="background:#e2e8f0"></span> běžná sedačka</div>
+        <div class="legend-item"><span class="swatch" style="background:#fef3c7"></span> exit row</div>
+        <div class="legend-item"><span class="swatch" style="background:#93c5fd"></span> vybraná sedačka</div>
+        <div class="legend-item"><span class="swatch" style="background:#2563eb"></span> special meal</div>
+        <div class="legend-item"><span class="swatch" style="background:#7c3aed"></span> special PAX</div>
+        <div class="legend-item"><span class="swatch" style="background:#ea580c"></span> fresh objednávka</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Rychlý přehled special PAX</h2>
+      <div class="list" id="specialPaxList"></div>
+    </div>
+
+    <div class="card">
+      <h2>Fresh přehled</h2>
+      <div class="list" id="freshList"></div>
+    </div>
+
+    <div class="card">
+      <div class="row">
+        <button id="exportBtn">Export JSON</button>
+        <button id="importBtn" class="secondary">Import JSON</button>
+      </div>
+      <div style="height:8px"></div>
+      <div class="row">
+        <button id="clearBtn" class="danger">Vymazat vše</button>
+        <button id="sampleBtn" class="warn">Ukázková data</button>
+      </div>
+      <div class="footer-note">
+        Data se ukládají automaticky do prohlížeče (localStorage).
+      </div>
+      <input type="file" id="importFile" accept=".json" style="display:none" />
+    </div>
+  </aside>
+
+  <main class="main">
+    <div class="seatmap-wrap">
+      <div class="topbar">
+        <div>
+          <h2 style="font-size:1.25rem">Boeing 737-800</h2>
+          <p>Rozložení 3–3, řady 1–30. Klikni na sedačku a doplň meal / PAX / fresh.</p>
+        </div>
+        <div class="row">
+          <input id="searchSeat" class="search" type="text" placeholder="Najít sedačku, např. 14C" />
+          <button id="findBtn" class="ghost">Najít</button>
+        </div>
+      </div>
+
+      <section class="seatmap">
+        <div class="aircraft-head">NOSE</div>
+        <div class="grid-header">
+          <div></div><div>A</div><div>B</div><div>C</div><div></div><div>D</div><div>E</div><div>F</div>
+        </div>
+        <div id="seatRows"></div>
+        <div class="aircraft-tail">TAIL</div>
+      </section>
+    </div>
+  </main>
+</div>
+
+<div class="modal" id="seatModal">
+  <div class="modal-box">
+    <div class="row" style="justify-content:space-between; margin-bottom:12px;">
+      <div>
+        <h2 id="modalTitle">Sedačka</h2>
+        <small>Vyplň jen to, co potřebuješ. Můžeš kombinovat meal + special PAX + fresh.</small>
+      </div>
+      <button id="closeModal" class="secondary">Zavřít</button>
+    </div>
+
+    <div class="modal-grid">
+      <div>
+        <label for="specialMeal">Special meal</label>
+        <input id="specialMeal" type="text" placeholder="Např. VGML, CHML, KSML..." />
+        <div class="tagbox">
+          <span class="tag meal-tag">VGML</span>
+          <span class="tag meal-tag">CHML</span>
+          <span class="tag meal-tag">KSML</span>
+          <span class="tag meal-tag">BBML</span>
+          <span class="tag meal-tag">GFML</span>
+          <span class="tag meal-tag">NLML</span>
+        </div>
+
+        <div style="height:12px"></div>
+
+        <label>Special PAX</label>
+        <div class="check-grid" id="specialPaxChecks">
+          <label><input type="checkbox" value="WCHR" /> WCHR</label>
+          <label><input type="checkbox" value="WCHS" /> WCHS</label>
+          <label><input type="checkbox" value="WCHC" /> WCHC</label>
+          <label><input type="checkbox" value="INF" /> INF</label>
+          <label><input type="checkbox" value="UMNR" /> UMNR</label>
+          <label><input type="checkbox" value="DEAF" /> DEAF</label>
+          <label><input type="checkbox" value="BLND" /> BLND</label>
+          <label><input type="checkbox" value="EXST" /> EXST</label>
+          <label><input type="checkbox" value="MAAS" /> MAAS</label>
+          <label><input type="checkbox" value="PETC" /> PETC</label>
+        </div>
+        <div style="height:8px"></div>
+        <label for="customPax">Vlastní kód / poznámka k PAX</label>
+        <input id="customPax" type="text" placeholder="Např. MEDA, DPNA, VIP..." />
+      </div>
+
+      <div>
+        <label for="freshOrder">Fresh objednávka</label>
+        <textarea id="freshOrder" placeholder="Např. 1× PŠ, 2× pizza salami, 1× toast"></textarea>
+        <div class="tagbox">
+          <span class="tag fresh-tag">1× PŠ</span>
+          <span class="tag fresh-tag">1× PKu</span>
+          <span class="tag fresh-tag">1× pizza</span>
+          <span class="tag fresh-tag">1× toast</span>
+          <span class="tag fresh-tag">1× hot dog</span>
+        </div>
+
+        <div style="height:12px"></div>
+
+        <label for="seatNote">Poznámka k sedačce</label>
+        <textarea id="seatNote" placeholder="Např. donést po rozpečení až po trolley service"></textarea>
+      </div>
+    </div>
+
+    <div class="row" style="justify-content:space-between; margin-top:16px;">
+      <button id="deleteSeatData" class="danger">Smazat data sedačky</button>
+      <div class="row">
+        <button id="saveSeatData">Uložit</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const ROWS = 30;
+const SEAT_LETTERS = ['A','B','C','D','E','F'];
+const EXIT_ROWS = [15,16];
+const STORAGE_KEY = 'b738-seatmap-v1';
+
+let state = {
+  flightNo: '',
+  generalNote: '',
+  seats: {}
+};
+
+let currentSeat = null;
+
+function seatKey(row, letter){ return `${row}${letter}`; }
+
+function blankSeatData(){
+  return {
+    specialMeal: '',
+    specialPax: [],
+    customPax: '',
+    freshOrder: '',
+    note: ''
+  };
+}
+
+function getSeatData(key){
+  return state.seats[key] || blankSeatData();
+}
+
+function hasSeatData(data){
+  return !!(
+    (data.specialMeal && data.specialMeal.trim()) ||
+    (data.specialPax && data.specialPax.length) ||
+    (data.customPax && data.customPax.trim()) ||
+    (data.freshOrder && data.freshOrder.trim()) ||
+    (data.note && data.note.trim())
+  );
+}
+
+function renderSeatMap(){
+  const container = document.getElementById('seatRows');
+  container.innerHTML = '';
+  for(let row=1; row<=ROWS; row++){
+    const rowEl = document.createElement('div');
+    rowEl.className = 'seat-row' + (EXIT_ROWS.includes(row) ? ' exit-row' : '');
+
+    const rowNum = document.createElement('div');
+    rowNum.className = 'rownum';
+    rowNum.textContent = row;
+    rowEl.appendChild(rowNum);
+
+    ['A','B','C'].forEach(letter => rowEl.appendChild(makeSeat(row, letter)));
+
+    const aisle = document.createElement('div');
+    aisle.className = 'aisle';
+    aisle.textContent = '✈';
+    rowEl.appendChild(aisle);
+
+    ['D','E','F'].forEach(letter => rowEl.appendChild(makeSeat(row, letter)));
+
+    container.appendChild(rowEl);
+  }
+}
+
+function makeSeat(row, letter){
+  const key = seatKey(row, letter);
+  const data = getSeatData(key);
+  const seat = document.createElement('button');
+  seat.className = 'seat'
+    + (EXIT_ROWS.includes(row) ? ' exit' : '')
+    + (hasSeatData(data) ? ' has-data' : '')
+    + (currentSeat === key ? ' selected' : '');
+  seat.type = 'button';
+  seat.dataset.seat = key;
+
+  let inner = `<div class="seat-id">${key}</div><div class="seat-meta">`;
+  if(data.specialMeal?.trim()) inner += `<span class="pill meal">${escapeHtml(data.specialMeal)}</span>`;
+  if(data.specialPax?.length || data.customPax?.trim()){
+    const paxText = [...data.specialPax, ...(data.customPax?.trim() ? [data.customPax.trim()] : [])].join(', ');
+    inner += `<span class="pill pax">${escapeHtml(paxText)}</span>`;
+  }
+  if(data.freshOrder?.trim()) inner += `<span class="pill fresh">${escapeHtml(firstLine(data.freshOrder, 24))}</span>`;
+  if(data.note?.trim() && !data.freshOrder?.trim()) inner += `<span class="pill note">${escapeHtml(firstLine(data.note, 20))}</span>`;
+  inner += `</div>`;
+  seat.innerHTML = inner;
+
+  seat.addEventListener('click', () => openSeatModal(key));
+  return seat;
+}
+
+function firstLine(text, max){
+  const s = String(text).split('\n')[0];
+  return s.length > max ? s.slice(0, max - 1) + '…' : s;
+}
+
+function escapeHtml(str){
+  return String(str)
+    .replaceAll('&','&amp;')
+    .replaceAll('<','&lt;')
+    .replaceAll('>','&gt;')
+    .replaceAll('"','&quot;')
+    .replaceAll("'","&#039;");
+}
+
+function openSeatModal(key){
+  currentSeat = key;
+  const data = getSeatData(key);
+  document.getElementById('modalTitle').textContent = `Sedačka ${key}`;
+  document.getElementById('specialMeal').value = data.specialMeal || '';
+  document.getElementById('customPax').value = data.customPax || '';
+  document.getElementById('freshOrder').value = data.freshOrder || '';
+  document.getElementById('seatNote').value = data.note || '';
+  document.querySelectorAll('#specialPaxChecks input[type="checkbox"]').forEach(cb => {
+    cb.checked = (data.specialPax || []).includes(cb.value);
+  });
+  document.getElementById('seatModal').classList.add('open');
+  renderSeatMap();
+}
+
+function closeSeatModal(){
+  document.getElementById('seatModal').classList.remove('open');
+  currentSeat = null;
+  renderSeatMap();
+}
+
+function saveSeatData(){
+  if(!currentSeat) return;
+  const selectedPax = [...document.querySelectorAll('#specialPaxChecks input[type="checkbox"]:checked')].map(cb => cb.value);
+  const data = {
+    specialMeal: document.getElementById('specialMeal').value.trim(),
+    specialPax: selectedPax,
+    customPax: document.getElementById('customPax').value.trim(),
+    freshOrder: document.getElementById('freshOrder').value.trim(),
+    note: document.getElementById('seatNote').value.trim()
+  };
+  if(hasSeatData(data)) state.seats[currentSeat] = data;
+  else delete state.seats[currentSeat];
+  persist();
+  closeSeatModal();
+  renderAll();
+}
+
+function deleteSeatData(){
+  if(!currentSeat) return;
+  delete state.seats[currentSeat];
+  persist();
+  closeSeatModal();
+  renderAll();
+}
+
+function persist(){
+  state.flightNo = document.getElementById('flightNo').value;
+  state.generalNote = document.getElementById('generalNote').value;
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+}
+
+function loadState(){
+  try{
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if(raw){
+      const parsed = JSON.parse(raw);
+      state = {
+        flightNo: parsed.flightNo || '',
+        generalNote: parsed.generalNote || '',
+        seats: parsed.seats || {}
+      };
+    }
+  }catch(e){
+    console.warn('Nepodařilo se načíst uložený stav.', e);
+  }
+  document.getElementById('flightNo').value = state.flightNo;
+  document.getElementById('generalNote').value = state.generalNote;
+}
+
+function updateSummary(){
+  const seatKeys = Object.keys(state.seats);
+  let mealCount = 0;
+  let freshCount = 0;
+  seatKeys.forEach(key => {
+    const d = state.seats[key];
+    if(d.specialMeal?.trim()) mealCount++;
+    if(d.freshOrder?.trim()) freshCount++;
+  });
+  document.getElementById('countSeats').textContent = seatKeys.length;
+  document.getElementById('countMeals').textContent = mealCount;
+  document.getElementById('countFresh').textContent = freshCount;
+}
+
+function renderSpecialPaxList(){
+  const box = document.getElementById('specialPaxList');
+  box.innerHTML = '';
+  const items = [];
+  Object.entries(state.seats).forEach(([seat, d]) => {
+    const pax = [...(d.specialPax || []), ...(d.customPax?.trim() ? [d.customPax.trim()] : [])];
+    if(pax.length){
+      items.push({seat, pax, note:d.note || ''});
+    }
+  });
+  items.sort((a,b)=> seatSort(a.seat,b.seat));
+  if(!items.length){
+    box.innerHTML = '<div class="muted">Zatím nic.</div>';
+    return;
+  }
+  items.forEach(item => {
+    const div = document.createElement('div');
+    div.className = 'list-item';
+    div.innerHTML = `<strong>${item.seat}</strong><div>${escapeHtml(item.pax.join(', '))}</div>${item.note ? `<div class="muted">${escapeHtml(item.note)}</div>` : ''}`;
+    box.appendChild(div);
+  });
+}
+
+function renderFreshList(){
+  const box = document.getElementById('freshList');
+  box.innerHTML = '';
+  const items = [];
+  Object.entries(state.seats).forEach(([seat, d]) => {
+    if(d.freshOrder?.trim()){
+      items.push({seat, fresh:d.freshOrder, note:d.note || ''});
+    }
+  });
+  items.sort((a,b)=> seatSort(a.seat,b.seat));
+  if(!items.length){
+    box.innerHTML = '<div class="muted">Zatím nic.</div>';
+    return;
+  }
+  items.forEach(item => {
+    const div = document.createElement('div');
+    div.className = 'list-item';
+    div.innerHTML = `<strong>${item.seat}</strong><div>${escapeHtml(item.fresh).replaceAll('\n','<br>')}</div>${item.note ? `<div class="muted">${escapeHtml(item.note)}</div>` : ''}`;
+    box.appendChild(div);
+  });
+}
+
+function seatSort(a,b){
+  const pa = parseInt(a,10), pb = parseInt(b,10);
+  if(pa !== pb) return pa - pb;
+  return a.localeCompare(b);
+}
+
+function renderAll(){
+  renderSeatMap();
+  updateSummary();
+  renderSpecialPaxList();
+  renderFreshList();
+}
+
+function exportJson(){
+  persist();
+  const blob = new Blob([JSON.stringify(state, null, 2)], {type:'application/json'});
+  const a = document.createElement('a');
+  const flight = (state.flightNo || 'b738-seatmap').replace(/[^\w\-]+/g,'_');
+  a.href = URL.createObjectURL(blob);
+  a.download = `${flight}.json`;
+  a.click();
+  URL.revokeObjectURL(a.href);
+}
+
+function importJson(file){
+  const reader = new FileReader();
+  reader.onload = e => {
+    try{
+      const parsed = JSON.parse(e.target.result);
+      state = {
+        flightNo: parsed.flightNo || '',
+        generalNote: parsed.generalNote || '',
+        seats: parsed.seats || {}
+      };
+      document.getElementById('flightNo').value = state.flightNo;
+      document.getElementById('generalNote').value = state.generalNote;
+      persist();
+      renderAll();
+      alert('Import hotový.');
+    }catch(err){
+      alert('Soubor se nepodařilo načíst.');
+    }
+  };
+  reader.readAsText(file);
+}
+
+function jumpToSeat(){
+  const value = document.getElementById('searchSeat').value.trim().toUpperCase();
+  if(!value) return;
+  const el = document.querySelector(`[data-seat="${value}"]`);
+  if(!el){
+    alert('Sedačka nebyla nalezena.');
+    return;
+  }
+  el.scrollIntoView({behavior:'smooth', block:'center'});
+  openSeatModal(value);
+}
+
+function loadSample(){
+  state.flightNo = 'QS1234 PRG–PMI';
+  state.generalNote = 'Ukázková data';
+  state.seats = {
+    "1A": {specialMeal:'CHML', specialPax:['INF'], customPax:'', freshOrder:'', note:'rodina s dítětem'},
+    "4C": {specialMeal:'', specialPax:['WCHR'], customPax:'', freshOrder:'', note:'pomoc při deboardingu'},
+    "7D": {specialMeal:'VGML', specialPax:[], customPax:'', freshOrder:'1× PŠ', note:'po první službě'},
+    "12A": {specialMeal:'', specialPax:['UMNR'], customPax:'', freshOrder:'', note:'zkontrolovat předání'},
+    "14F": {specialMeal:'', specialPax:[], customPax:'VIP', freshOrder:'2× pizza\n1× toast', note:'dodat najednou'},
+    "23C": {specialMeal:'KSML', specialPax:['WCHS'], customPax:'', freshOrder:'1× PKu', note:''}
+  };
+  document.getElementById('flightNo').value = state.flightNo;
+  document.getElementById('generalNote').value = state.generalNote;
+  persist();
+  renderAll();
+}
+
+document.getElementById('closeModal').addEventListener('click', closeSeatModal);
+document.getElementById('saveSeatData').addEventListener('click', saveSeatData);
+document.getElementById('deleteSeatData').addEventListener('click', deleteSeatData);
+document.getElementById('seatModal').addEventListener('click', e => {
+  if(e.target.id === 'seatModal') closeSeatModal();
+});
+document.getElementById('flightNo').addEventListener('input', persist);
+document.getElementById('generalNote').addEventListener('input', persist);
+document.getElementById('exportBtn').addEventListener('click', exportJson);
+document.getElementById('importBtn').addEventListener('click', () => document.getElementById('importFile').click());
+document.getElementById('importFile').addEventListener('change', e => {
+  if(e.target.files[0]) importJson(e.target.files[0]);
+  e.target.value = '';
+});
+document.getElementById('clearBtn').addEventListener('click', () => {
+  if(confirm('Opravdu vymazat všechna data?')){
+    state = {flightNo:'', generalNote:'', seats:{}};
+    document.getElementById('flightNo').value = '';
+    document.getElementById('generalNote').value = '';
+    persist();
+    renderAll();
+  }
+});
+document.getElementById('sampleBtn').addEventListener('click', loadSample);
+document.getElementById('findBtn').addEventListener('click', jumpToSeat);
+document.getElementById('searchSeat').addEventListener('keydown', e => {
+  if(e.key === 'Enter') jumpToSeat();
+});
+
+document.querySelectorAll('.meal-tag').forEach(tag => {
+  tag.addEventListener('click', () => {
+    document.getElementById('specialMeal').value = tag.textContent;
+  });
+});
+document.querySelectorAll('.fresh-tag').forEach(tag => {
+  tag.addEventListener('click', () => {
+    const area = document.getElementById('freshOrder');
+    area.value = area.value.trim() ? area.value.trim() + '\n' + tag.textContent : tag.textContent;
+  });
+});
+
+loadState();
+renderAll();
+</script>
+</body>
+</html>
