@@ -24,14 +24,14 @@
   --exit:#d8f5d0;
   --disabled:#eceff4;
 
-  --pill-fresh-bg:#ffd6d6;
-  --pill-fresh-text:#a11a1a;
+  --pill-fresh-bg:#ffe1bf;
+  --pill-fresh-text:#b85c00;
 
   --pill-pax-bg:#efe7ff;
   --pill-pax-text:#6d28d9;
 
-  --pill-catering-bg:#d8ecff;
-  --pill-catering-text:#004289;
+  --pill-catering-bg:#ffd6d6;
+  --pill-catering-text:#a11a1a;
 
   --pill-note-bg:#edf2f7;
   --pill-note-text:#475569;
@@ -53,14 +53,14 @@ body.dark{
   --exit:#1e4a20;
   --disabled:#29364a;
 
-  --pill-fresh-bg:#6a1f1f;
-  --pill-fresh-text:#ffd7d7;
+  --pill-fresh-bg:#5a3710;
+  --pill-fresh-text:#ffd39a;
 
   --pill-pax-bg:#3b2758;
   --pill-pax-text:#eedbff;
 
-  --pill-catering-bg:#23456f;
-  --pill-catering-text:#eff6ff;
+  --pill-catering-bg:#6a1f1f;
+  --pill-catering-text:#ffd7d7;
 
   --pill-note-bg:#233246;
   --pill-note-text:#e5eef9;
@@ -148,7 +148,12 @@ button.small{padding:8px 10px;font-size:.9rem}
 .sticky-actions{position:sticky;bottom:0;background:linear-gradient(180deg,transparent,var(--panel) 22%);padding-top:10px}
 .summary-modal-list{max-height:60vh;overflow:auto}
 .summary-row{padding:10px;border:1px solid var(--line);border-radius:12px;margin-bottom:8px;background:var(--panel)}
-.search-grid{display:grid;grid-template-columns:1.2fr .9fr auto;gap:8px}
+
+.letter-picker{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:8px;margin-top:8px}
+.letter-btn{padding:10px 0;text-align:center}
+.letter-btn.active{background:var(--orange);color:#fff;border:none}
+
+.search-grid{display:grid;grid-template-columns:1fr auto;gap:8px}
 .search-grid input{min-width:0}
 .search-action{display:flex;align-items:end}
 @media (max-width:1100px){.app{grid-template-columns:1fr}.sidebar{position:relative;height:auto}}
@@ -178,8 +183,9 @@ button.small{padding:8px 10px;font-size:.9rem}
   .check-grid{grid-template-columns:1fr}
   button{padding:9px 10px}
   .mobile-order-1{order:1}.mobile-order-2{order:2}.mobile-order-3{order:3}.mobile-order-4{order:4}
-  .search-grid{grid-template-columns:1fr 1fr}
-  .search-action{grid-column:1 / -1}
+  .search-grid{grid-template-columns:1fr}
+  .search-action{grid-column:auto}
+  .letter-picker{grid-template-columns:repeat(3,minmax(0,1fr))}
 }
 </style>
 </head>
@@ -254,13 +260,6 @@ button.small{padding:8px 10px;font-size:.9rem}
         <button id="themeBtn" class="secondary">Dark mode</button>
       </div>
       <div style="height:10px"></div>
-      <label>Vyhledání sedačky</label>
-      <div class="search-grid">
-        <input id="seatRowInput" type="tel" inputmode="numeric" pattern="[0-9]*" placeholder="Řada" />
-        <input id="seatLetterInput" type="text" maxlength="1" autocapitalize="characters" placeholder="Písmeno" />
-        <div class="search-action"><button id="findBtn" class="ghost">Najít</button></div>
-      </div>
-      <div style="height:10px"></div>
       <div class="row">
         <button id="exportBtn">Export JSON</button>
         <button id="importBtn" class="secondary">Import JSON</button>
@@ -272,6 +271,24 @@ button.small{padding:8px 10px;font-size:.9rem}
       </div>
       <input type="file" id="importFile" accept=".json" style="display:none" />
       <div class="muted" style="margin-top:10px" id="themeLabel">Aktuálně: světlý režim</div>
+    </div>
+
+    <div class="card">
+      <h2>Vyhledání sedačky</h2>
+      <div class="search-grid">
+        <input id="seatRowInput" type="tel" inputmode="numeric" pattern="[0-9]*" placeholder="Řada" />
+        <div class="search-action"><button id="findBtn" class="ghost">Najít</button></div>
+      </div>
+      <div class="letter-picker" id="letterPicker">
+        <button type="button" class="secondary letter-btn" data-letter="A">A</button>
+        <button type="button" class="secondary letter-btn" data-letter="B">B</button>
+        <button type="button" class="secondary letter-btn" data-letter="C">C</button>
+        <button type="button" class="secondary letter-btn" data-letter="D">D</button>
+        <button type="button" class="secondary letter-btn" data-letter="E">E</button>
+        <button type="button" class="secondary letter-btn" data-letter="F">F</button>
+      </div>
+      <input id="seatLetterInput" type="hidden" />
+      <div class="muted" style="margin-top:10px">Vyber řadu a pak klepni na písmeno.</div>
     </div>
   </aside>
 
@@ -584,6 +601,7 @@ function loadState(){
   document.getElementById('flightNo').value = state.flightNo;
   document.getElementById('generalNote').value = state.generalNote;
   applyTheme();
+  updateLetterPicker();
 }
 
 function updateSummary(){
@@ -696,6 +714,7 @@ function importJson(file){
       document.getElementById('flightNo').value = state.flightNo;
       document.getElementById('generalNote').value = state.generalNote;
       persist();
+      updateLetterPicker();
       renderAll();
       alert('Import hotový.');
     }catch(err){
@@ -726,6 +745,15 @@ function jumpToSeat(){
   openSeatModal(value);
 }
 
+
+function updateLetterPicker(){
+  const active = (document.getElementById('seatLetterInput').value || '').toUpperCase();
+  document.querySelectorAll('.letter-btn').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.letter === active);
+    btn.classList.toggle('secondary', btn.dataset.letter !== active);
+  });
+}
+
 function loadSample(){
   state = {
     flightNo:'QS1234 PRG–PMI',
@@ -745,6 +773,7 @@ function loadSample(){
   document.getElementById('flightNo').value = state.flightNo;
   document.getElementById('generalNote').value = state.generalNote;
   persist();
+  updateLetterPicker();
   renderAll();
 }
 
@@ -762,9 +791,14 @@ document.getElementById('flightNo').addEventListener('input', persist);
 document.getElementById('generalNote').addEventListener('input', persist);
 document.getElementById('rotateBtn').addEventListener('click', rotateMap);
 document.getElementById('findBtn').addEventListener('click', jumpToSeat);
+
+document.querySelectorAll('.letter-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.getElementById('seatLetterInput').value = btn.dataset.letter;
+    updateLetterPicker();
+  });
+});
 document.getElementById('seatRowInput').addEventListener('keydown', e => { if(e.key === 'Enter') jumpToSeat(); });
-document.getElementById('seatLetterInput').addEventListener('keydown', e => { if(e.key === 'Enter') jumpToSeat(); });
-document.getElementById('seatLetterInput').addEventListener('input', e => { e.target.value = e.target.value.toUpperCase().replace(/[^A-F]/g,'').slice(0,1); });
 document.getElementById('exportBtn').addEventListener('click', exportJson);
 document.getElementById('importBtn').addEventListener('click', () => document.getElementById('importFile').click());
 document.getElementById('importFile').addEventListener('change', e => { if(e.target.files[0]) importJson(e.target.files[0]); e.target.value = ''; });
@@ -776,12 +810,14 @@ document.getElementById('clearBtn').addEventListener('click', () => {
     document.getElementById('generalNote').value = '';
     document.getElementById('seatRowInput').value = '';
     document.getElementById('seatLetterInput').value = '';
+    updateLetterPicker();
     persist();
     renderAll();
   }
 });
 
 loadState();
+updateLetterPicker();
 renderAll();
 </script>
 </body>
