@@ -22,6 +22,26 @@
       --ok: #2f7a45;
     }
 
+/* sjednocení fontu ve všech sloupcích tabulky */
+table td,
+table th {
+  font-size: 14px;
+  line-height: 1.4;
+}
+
+/* pojistka konkrétně pro poslední sloupec */
+table td:last-child,
+table th:last-child {
+  font-size: 14px;
+}
+
+@media (max-width: 768px) {
+  table td,
+  table th {
+    font-size: 13px;
+  }
+}
+
     * { box-sizing: border-box; }
     html { scroll-behavior: smooth; }
     body {
