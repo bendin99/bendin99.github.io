@@ -282,8 +282,16 @@
     }
 
 
+    table.med-table {
+      table-layout: fixed;
+    }
+
     table.med-table col:first-child {
-      width: 260px;
+      width: 180px;
+    }
+
+    table.med-table.wide-first col:first-child {
+      width: 200px;
     }
 
     table.med-table td:first-child,
@@ -292,8 +300,14 @@
       word-break: normal;
     }
 
-    table.med-table.wide-first col:first-child {
-      width: 340px;
+    table.med-table col:nth-child(2),
+    table.med-table col:nth-child(3) {
+      width: calc((100% - 180px) / 2);
+    }
+
+    table.med-table.wide-first col:nth-child(2),
+    table.med-table.wide-first col:nth-child(3) {
+      width: calc((100% - 200px) / 2);
     }
 
     table.conditions-table {
@@ -515,9 +529,22 @@
         width: 100%;
       }
 
-      table.med-table col:first-child,
+      table.med-table col:first-child {
+        width: 180px;
+      }
+
       table.med-table.wide-first col:first-child {
-        width: 240px;
+        width: 200px;
+      }
+
+      table.med-table col:nth-child(2),
+      table.med-table col:nth-child(3) {
+        width: calc((100% - 180px) / 2);
+      }
+
+      table.med-table.wide-first col:nth-child(2),
+      table.med-table.wide-first col:nth-child(3) {
+        width: calc((100% - 200px) / 2);
       }
 
       table {
@@ -657,17 +684,17 @@
               <tr><th>Co?</th><th>Kdy?</th><th>Kdy ne?</th></tr>
             </thead>
             <tbody>
-              <tr><td>Ibumax 200 mg (Ibalgin, Ibuprofen)</td><td>Zánětlivá onemocnění, bolest, migréna.</td><td>Onemocnění trávicího traktu, alergie.</td></tr>
-              <tr><td>Paralen 500 mg (Paracetamol)</td><td>Akutní horečka, bolest zubů a hlavy.</td><td>Onemocnění jater.</td></tr>
-              <tr><td>Valetol (Propyfenazol)</td><td>Bolest zubů, hlavy, zánět HCD.</td><td>Onemocnění jater, dušnost.</td></tr>
+              <tr><td>Ibumax 200 mg<br>(Ibalgin, Ibuprofen)</td><td>Zánětlivá onemocnění, bolest, migréna.</td><td>Onemocnění trávicího traktu, alergie.</td></tr>
+              <tr><td>Paralen 500 mg<br>(Paracetamol)</td><td>Akutní horečka, bolest zubů a hlavy.</td><td>Onemocnění jater.</td></tr>
+              <tr><td>Valetol<br>(Propyfenazol)</td><td>Bolest zubů, hlavy, zánět HCD.</td><td>Onemocnění jater, dušnost.</td></tr>
               <tr><td>Kinedryl</td><td>Kinetóza.</td><td>Intoxikace, těhotenství.</td></tr>
-              <tr><td>Rennie (Uhličitan vápenatý)</td><td>Nauzea, zvracení, pálení žáhy.</td><td>Do 15 let.</td></tr>
-              <tr><td>Endiaron (Kloroxin)</td><td>Silné průjmy.</td><td>Do 40 kg.</td></tr>
+              <tr><td>Rennie<br>(Uhličitan vápenatý)</td><td>Nauzea, zvracení, pálení žáhy.</td><td>Do 15 let.</td></tr>
+              <tr><td>Endiaron<br>(Kloroxin)</td><td>Silné průjmy.</td><td>Do 40 kg.</td></tr>
               <tr><td>Dithiaden</td><td>Alergická reakce, kopřivka, mírné otoky.</td><td>Do 2 let.</td></tr>
               <tr><td>Grandaxin</td><td>Strach, neurotické stavy, deprese.</td><td>Do 18 let.</td></tr>
               <tr><td>Diazepam</td><td>Úzkost, abstinenční příznaky, po epilepsii.</td><td>Intoxikace, spánková apnoe.</td></tr>
               <tr><td>Guajacuran</td><td>Celkové napětí a stres.</td><td>Do 6 let, těhotenství.</td></tr>
-              <tr><td>Gelitaspon (Sugaspon)</td><td>Zástava krvácení z nosu.</td><td>—</td></tr>
+              <tr><td>Gelitaspon<br>(Sugaspon)</td><td>Zástava krvácení z nosu.</td><td>—</td></tr>
             </tbody>
           </table>
         </div>
@@ -685,10 +712,10 @@
             </thead>
             <tbody>
               <tr><td>Nitromint sprej</td><td>Záchvat anginy pectoris.</td><td>Tlak pod 120/70.</td></tr>
-              <tr><td>Epipen (jen lékař nebo pacient sám)</td><td>Anafylaxe.</td><td></td></tr>
+              <tr><td>Epipen<br>(jen lékař nebo pacient sám)</td><td>Anafylaxe.</td><td></td></tr>
               <tr><td>Berodual sprej</td><td>Astma, zúžení dýchacích cest.</td><td>—</td></tr>
-              <tr><td>Fyziologický roztok (NaCl 0,9 %)</td><td>Ředění, výplach, popáleniny.</td><td>—</td></tr>
-              <tr><td>+ tonometr, glukometr, oxymetr</td><td></td><td></td></tr>
+              <tr><td>Fyziologický roztok<br>(NaCl 0,9 %)</td><td>Ředění, výplach, popáleniny.</td><td>—</td></tr>
+              <tr><td colspan="3">+ tonometr, glukometr, oxymetr</td></tr>
             </tbody>
           </table>
         </div>
@@ -710,7 +737,7 @@
               <tr><td>Diazepam Desitin Rectal</td><td>Viz Diazepam, gel pro rektální podání.</td><td></td></tr>
               <tr><td>Acylpyrin 500 mg</td><td>Infarkt.</td><td>Do 16 let, alergie na kys. acetylsalicylovou.</td></tr>
               <tr><td>WaterJel</td><td>Ošetření popálenin.</td><td>Malé děti – riziko podchlazení.</td></tr>
-              <tr><td>+ inf. ambuvak, inf. maska, porodnický balíček</td><td></td><td></td></tr>
+              <tr><td colspan="3">+ inf. ambuvak, inf. maska, porodnický balíček</td></tr>
             </tbody>
           </table>
         </div>
