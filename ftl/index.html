@@ -406,12 +406,27 @@
 
   <div style="height:10px;"></div>
 
-  <label for="sbyCallTime">Čas hovoru z planningu</label>
-  <input type="time" id="sbyCallTime" value="00:00" />
+  <div class="field" style="margin:0;">
+    <label style="margin-bottom:8px;">Byl hovor z plánování mezi 23.–7. hodinou?</label>
+    <div class="segmented">
+      <div>
+        <input type="radio" id="planning-call-no" name="usePlanningCall" value="no" checked />
+        <label for="planning-call-no">Ne</label>
+      </div>
+      <div>
+        <input type="radio" id="planning-call-yes" name="usePlanningCall" value="yes" />
+        <label for="planning-call-yes">Ano</label>
+      </div>
+    </div>
+  </div>
 
-  <div class="hint">
-    Doba SBY se dopočítá automaticky z reportingu. Pokud call time padne mezi 23:00–07:00,
-    od tohoto času do reportingu se vše počítá jako denní držení.
+  <div id="planningCallFields" style="display:none; margin-top:10px;">
+    <label for="sbyCallTime">Čas hovoru</label>
+    <input type="time" id="sbyCallTime" value="00:00" />
+
+    <div class="hint">
+      Pokud call time padne mezi 23:00–07:00, od tohoto času do reportingu se vše počítá jako denní držení.
+    </div>
   </div>
 </div>
       <div class="field">
