@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Crew Medical Support</title>
+  <title>Crew Medical Support — přehled</title>
   <style>
     :root {
       --blue: #0d4f8b;
@@ -31,12 +31,15 @@
         radial-gradient(circle at top right, rgba(242,140,40,0.08), transparent 24%),
         linear-gradient(180deg, #fbfdff 0%, #f3f8fc 100%);
       line-height: 1.45;
+      overflow-x: hidden;
+      word-wrap: break-word;
     }
 
     .wrap {
       max-width: 1180px;
       margin: 0 auto;
       padding: 28px;
+      width: 100%;
     }
 
     .hero {
@@ -100,6 +103,7 @@
       padding: 10px 14px;
       border-radius: 14px;
       font-size: 14px;
+      max-width: 100%;
     }
 
     .note {
@@ -115,18 +119,20 @@
       border-radius: 20px;
       padding: 22px;
       box-shadow: 0 10px 26px rgba(14,46,77,0.06);
+      min-width: 0;
     }
 
     .note-card h2,
     .section h2 {
       margin: 0 0 14px;
-      font-size: 22px;
+      font-size: clamp(22px, 3vw, 28px);
       line-height: 1.15;
       color: var(--blue-dark);
     }
 
     .section {
       margin-top: 26px;
+      min-width: 0;
     }
 
     .grid-2,
@@ -146,6 +152,8 @@
       border-radius: 20px;
       padding: 20px;
       box-shadow: 0 10px 24px rgba(14,46,77,0.05);
+      min-width: 0;
+      overflow: hidden;
     }
 
     .card h3 {
@@ -160,14 +168,18 @@
     }
 
     .tag {
-      display: inline-block;
-      padding: 5px 10px;
+      display: block;
+      width: fit-content;
+      max-width: 100%;
+      padding: 7px 12px;
       border-radius: 999px;
       background: var(--orange-soft);
       color: var(--orange-dark);
-      font-size: 12px;
-      font-weight: 700;
-      margin-bottom: 10px;
+      font-size: clamp(16px, 2vw, 20px);
+      line-height: 1.2;
+      font-weight: 800;
+      margin-bottom: 14px;
+      letter-spacing: -0.01em;
     }
 
     .tag.blue {
@@ -196,6 +208,7 @@
       border: 1px solid var(--line);
       border-radius: 16px;
       padding: 14px;
+      min-width: 0;
     }
 
     .measure strong {
@@ -216,6 +229,7 @@
       border: 1px solid #f8d7b4;
       border-radius: 18px;
       padding: 16px;
+      min-width: 0;
     }
 
     .cpr .ratio {
@@ -225,12 +239,19 @@
       margin-top: 6px;
     }
 
+    .table-wrap {
+      width: 100%;
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+      border-radius: 18px;
+    }
+
     table {
       width: 100%;
+      min-width: 560px;
       border-collapse: collapse;
       font-size: 14px;
       background: var(--white);
-      overflow: hidden;
       border-radius: 18px;
     }
 
@@ -239,6 +260,7 @@
       vertical-align: top;
       padding: 14px 12px;
       border-bottom: 1px solid var(--line);
+      word-break: break-word;
     }
 
     th {
@@ -247,6 +269,8 @@
       font-size: 12px;
       text-transform: uppercase;
       letter-spacing: 0.05em;
+      position: sticky;
+      top: 0;
     }
 
     tr:last-child td { border-bottom: none; }
@@ -278,6 +302,7 @@
       gap: 16px;
       align-items: end;
       margin-bottom: 14px;
+      flex-wrap: wrap;
     }
 
     .kicker {
@@ -300,6 +325,86 @@
       }
     }
 
+    @media (max-width: 768px) {
+      .wrap {
+        padding: 14px;
+      }
+
+      .hero {
+        border-radius: 18px;
+        padding: 22px 18px 18px;
+      }
+
+      .hero::after {
+        width: 150px;
+        height: 150px;
+        inset: auto -35px -35px auto;
+      }
+
+      .pill {
+        font-size: 13px;
+        padding: 8px 12px;
+      }
+
+      .note-card,
+      .card {
+        padding: 16px;
+        border-radius: 16px;
+      }
+
+      .headline-row {
+        align-items: flex-start;
+        margin-bottom: 12px;
+      }
+
+      .measure strong,
+      .cpr .ratio {
+        font-size: 24px;
+      }
+
+      table {
+        min-width: 520px;
+        font-size: 13px;
+      }
+
+      th, td {
+        padding: 10px 9px;
+      }
+    }
+
+    @media (max-width: 520px) {
+      h1 {
+        font-size: 28px;
+      }
+
+      .note-card h2,
+      .section h2 {
+        font-size: 24px;
+      }
+
+      .tag {
+        font-size: 20px;
+        width: 100%;
+        border-radius: 16px;
+      }
+
+      .meta {
+        gap: 8px;
+      }
+
+      .pill {
+        width: 100%;
+      }
+
+      table {
+        min-width: 460px;
+      }
+
+      .footer {
+        padding: 16px;
+      }
+    }
+
     @media print {
       body {
         background: white;
@@ -314,6 +419,15 @@
       .section, .card, .note-card, .hero {
         break-inside: avoid;
       }
+      .table-wrap {
+        overflow: visible;
+      }
+      table {
+        min-width: 0;
+      }
+      th {
+        position: static;
+      }
     }
   </style>
 </head>
@@ -322,7 +436,7 @@
     <section class="hero">
       <div class="eyebrow">04/2025</div>
       <h1>Crew Medical Support</h1>
-      
+
       <div class="meta">
         <div class="pill">Nezapomeň</div>
         <div class="pill">Vyvolej doktora</div>
@@ -410,63 +524,64 @@
     <section class="section grid-2">
       <div class="card">
         <span class="tag blue">First Aid Kit</span>
-        <table>
-          <thead>
-            <tr><th>Lék</th><th>Kdy</th><th>Kdy ne</th></tr>
-          </thead>
-          <tbody>
-            <tr><td>Ibumax / Ibalgin / Ibuprofen 200 mg</td><td>Zánětlivá onemocnění, bolest, migréna.</td><td>Onemocnění trávicího traktu, alergie.</td></tr>
-            <tr><td>Paralen 500 mg</td><td>Akutní horečka, bolest zubů a hlavy.</td><td>Onemocnění jater.</td></tr>
-            <tr><td>Valetol</td><td>Bolest zubů, hlavy, zánět HCD.</td><td>Onemocnění jater, dušnost.</td></tr>
-            <tr><td>Kinedryl</td><td>Kinetóza.</td><td>Intoxikace, těhotenství.</td></tr>
-            <tr><td>Rennie</td><td>Nauzea, zvracení, pálení žáhy.</td><td>Do 15 let.</td></tr>
-            <tr><td>Endiaron</td><td>Silné průjmy.</td><td>Do 40 kg.</td></tr>
-            <tr><td>Dithiaden</td><td>Alergická reakce, kopřivka, mírné otoky.</td><td>Do 2 let.</td></tr>
-            <tr><td>Grandaxin</td><td>Strach, neurotické stavy, deprese.</td><td>Do 18 let.</td></tr>
-            <tr><td>Diazepam</td><td>Úzkost, abstinenční příznaky, po epilepsii.</td><td>Intoxikace, spánková apnoe.</td></tr>
-            <tr><td>Guajacuran</td><td>Celkové napětí a stres.</td><td>Do 6 let, těhotenství.</td></tr>
-            <tr><td>Gelitaspon (Sugaspon)</td><td>Zástava krvácení z nosu.</td><td>—</td></tr>
-          </tbody>
-        </table>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr><th>Lék</th><th>Kdy</th><th>Kdy ne</th></tr>
+            </thead>
+            <tbody>
+              <tr><td>Ibumax / Ibalgin / Ibuprofen 200 mg</td><td>Zánětlivá onemocnění, bolest, migréna.</td><td>Onemocnění trávicího traktu, alergie.</td></tr>
+              <tr><td>Paralen 500 mg</td><td>Akutní horečka, bolest zubů a hlavy.</td><td>Onemocnění jater.</td></tr>
+              <tr><td>Valetol</td><td>Bolest zubů, hlavy, zánět HCD.</td><td>Onemocnění jater, dušnost.</td></tr>
+              <tr><td>Kinedryl</td><td>Kinetóza.</td><td>Intoxikace, těhotenství.</td></tr>
+              <tr><td>Rennie</td><td>Nauzea, zvracení, pálení žáhy.</td><td>Do 15 let.</td></tr>
+              <tr><td>Endiaron</td><td>Silné průjmy.</td><td>Do 40 kg.</td></tr>
+              <tr><td>Dithiaden</td><td>Alergická reakce, kopřivka, mírné otoky.</td><td>Do 2 let.</td></tr>
+              <tr><td>Grandaxin</td><td>Strach, neurotické stavy, deprese.</td><td>Do 18 let.</td></tr>
+              <tr><td>Diazepam</td><td>Úzkost, abstinenční příznaky, po epilepsii.</td><td>Intoxikace, spánková apnoe.</td></tr>
+              <tr><td>Guajacuran</td><td>Celkové napětí a stres.</td><td>Do 6 let, těhotenství.</td></tr>
+              <tr><td>Gelitaspon (Sugaspon)</td><td>Zástava krvácení z nosu.</td><td>—</td></tr>
+            </tbody>
+          </table>
+        </div>
       </div>
 
       <div class="card">
         <span class="tag">Emergency Medical Kit</span>
-        <table>
-          <thead>
-            <tr><th>Pomůcka / lék</th><th>Použití</th><th>Omezení</th></tr>
-          </thead>
-          <tbody>
-            <tr><td>Nitromint sprej</td><td>Záchvat anginy pectoris.</td><td>Tlak pod 120/70.</td></tr>
-            <tr><td>EpiPen</td><td>Anafylaxe.</td><td>Jen lékař nebo pacient sám.</td></tr>
-            <tr><td>Berodual sprej</td><td>Astma, zúžení DC.</td><td>—</td></tr>
-            <tr><td>Fyziologický roztok (NaCl 0,9 %)</td><td>Ředění, výplach, popáleniny.</td><td>—</td></tr>
-            <tr><td>Tonometr, glukometr, oxymetr</td></tr>
-
-          </tbody>
-        </table>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr><th>Pomůcka / lék</th><th>Použití</th><th>Omezení</th></tr>
+            </thead>
+            <tbody>
+              <tr><td>Nitromint sprej</td><td>Záchvat anginy pectoris.</td><td>Tlak pod 120/70.</td></tr>
+              <tr><td>EpiPen</td><td>Anafylaxe.</td><td>Jen lékař nebo pacient sám.</td></tr>
+              <tr><td>Berodual sprej</td><td>Astma, zúžení DC.</td><td>—</td></tr>
+              <tr><td>Fyziologický roztok (NaCl 0,9 %)</td><td>Ředění, výplach, popáleniny.</td><td>—</td></tr>
+              <tr><td>Tonometr, glukometr, oxymetr</td><td>Monitoring základních hodnot.</td><td>—</td></tr>
+            </tbody>
+          </table>
+        </div>
       </div>
 
-       <div class="card">
+      <div class="card">
         <span class="tag">First Aid Additional Equipment Kit</span>
-        <table>
-          <thead>
-            <tr><th>Pomůcka / lék</th><th>Použití</th><th>Omezení</th></tr>
-          </thead>
-          <tbody>
-            <tr><td>Occusept Aqua</td><td>Zklidnění očí, zánět spojivek, suché oči.</td><td>—</td></tr>
-            <tr><td>Paralen 100 mg</td><td>Děti, forma čípku.</td><td>Viz Paralen.</td></tr>
-            <tr><td>Diazepam Desitin Rectal</td><td>Rektální forma po záchvatu.</td><td>Viz Diazepam.</td></tr>
-            <tr><td>Acylpyrin 500 mg</td><td>Infarkt.</td><td>Do 16 let, alergie na ASA.</td></tr>
-            <tr><td>WaterJel</td><td>Ošetření popálenin.</td><td>Malé děti – riziko podchlazení.</td></tr>
-            <tr><td>Inf. ambuvak, inf. maska, porodnický balíček</td></tr>
-
-          </tbody>
-        </table>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr><th>Pomůcka / lék</th><th>Použití</th><th>Omezení</th></tr>
+            </thead>
+            <tbody>
+              <tr><td>Occusept Aqua</td><td>Zklidnění očí, zánět spojivek, suché oči.</td><td>—</td></tr>
+              <tr><td>Paralen 100 mg</td><td>Děti, forma čípku.</td><td>Viz Paralen.</td></tr>
+              <tr><td>Diazepam Desitin Rectal</td><td>Rektální forma po záchvatu.</td><td>Viz Diazepam.</td></tr>
+              <tr><td>Acylpyrin 500 mg</td><td>Infarkt.</td><td>Do 16 let, alergie na ASA.</td></tr>
+              <tr><td>WaterJel</td><td>Ošetření popálenin.</td><td>Malé děti – riziko podchlazení.</td></tr>
+              <tr><td>Inf. ambuvak, inf. maska, porodnický balíček</td><td>Podpora dýchání a mimořádné situace.</td><td>—</td></tr>
+            </tbody>
+          </table>
+        </div>
       </div>
-
-
-
     </section>
 
     <section class="section card">
@@ -476,38 +591,40 @@
           <h2>Nejčastější stavy a řešení</h2>
         </div>
       </div>
-      <table>
-        <thead>
-          <tr>
-            <th>Problém</th>
-            <th>Příznaky</th>
-            <th>Řešení</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr><td>Hyperventilace</td><td>Rychlé dýchání, brnění končetin a obličeje, málo CO₂.</td><td>Ne kyslík. Guajacuran / Diazepam. Dýchání přes sáček.</td></tr>
-          <tr><td>Nízký tlak</td><td>Slabost, závrať, zvracení, bledost, nižší tlak.</td><td>Nohy nahoru, voda, cola, chladit. Doporučit nevzít dřív antihypertenziva.</td></tr>
-          <tr><td>Hypoxie</td><td>Dušnost, únava, zmatenost, cyanóza.</td><td>Kyslík, monitorování saturace, případně léky dle příčiny.</td></tr>
-          <tr><td>Nevolnost / kinetóza</td><td>Nauzea, bolest hlavy, malátnost.</td><td>Ne kyslík. Kinedryl, zázvor, cola.</td></tr>
-          <tr><td>Astma</td><td>Sípání, kašel, sevřený hrudník, těžké dýchání.</td><td>Inhalátor, kyslík, klid, čerstvý vzduch.</td></tr>
-          <tr><td>Anafylaxe</td><td>Svědění, kopřivka, otok, dušnost, porucha vědomí.</td><td>Vždy vyvolat lékaře. Dithiaden. EpiPen jen lékař nebo pacient sám.</td></tr>
-          <tr><td>Epilepsie</td><td>Křeče, záškuby, krátká ztráta vědomí. Po záchvatu může následovat 10–20 minut bezvědomí nebo hlubokého spánku.</td><td>Zajistit bezpečí, odstranit předměty, Diazepam/Guajacuran, sledovat po záchvatu.</td></tr>
-          <tr><td>Hypoglykémie</td><td>Třes, pocení, nervozita, závratě, nízký cukr.</td><td>Glukóza, sladký nápoj nebo cukrovinky, při vědomí i malé sacharidové jídlo.</td></tr>
-          <tr><td>Hyperglykémie</td><td>Žízeň, sucho v ústech, únava, acetonový dech.</td><td>Tekutiny, inzulín pokud je předepsán, při zhoršení lékař.</td></tr>
-          <tr><td>Trombóza</td><td>Otok končetiny, bolest, zarudnutí, horká kůže.</td><td>Zavolat lékaře, případně léky na ředění krve, nehýbat končetinou.</td></tr>
-          <tr><td>Angina pectoris</td><td>Bolest/tlak na hrudi, dušnost, únava.</td><td>Nitroglycerin / Nitromint dle dávkování, kyslík podle potřeby.</td></tr>
-          <tr><td>Embolie</td><td>Náhlá dušnost, kašel s krví, bolest na hrudi, cyanóza.</td><td>Kyslík, lékař, klidový režim, případně antikoagulace.</td></tr>
-          <tr><td>Infarkt</td><td>Tlak na hrudi, nevolnost, studený pot, závratě.</td><td>Aspirin/Acylpyrin, kyslík, lékař, připravit CPR.</td></tr>
-          <tr><td>Mrtvice</td><td>Slabost, porucha řeči, koordinace, citlivosti.</td><td>Zavolat lékaře, zapsat čas, okamžitě přistát, nepodávat léky, BE FAST.</td></tr>
-          <tr><td>Zástava krvácení</td><td>Masivní krvácení, pokles TK, rychlý puls.</td><td>Komprese, tlakový obvaz, klid, zvednout končetinu, lékař.</td></tr>
-          <tr><td>Uzávěr dýchacích cest</td><td>Kašel, sípání, promodrávání.</td><td>Podpora kašle, údery mezi lopatky, Heimlich 5×, pak CPR.</td></tr>
-          <tr><td>Popáleniny</td><td>Zarudnutí, puchýře, zčernání kůže.</td><td>Chladit vodou / NaCl / WaterJel, nic nepřikládat, monitoruji → hrozí šok.<br>Dlaň = 1 %. Při poranění nad 10 % → vážné (u dětí 5 %).<br>Při popálení hlavy a dýchacích cest → vážné.</td></tr>
-          <tr><td>Úpal / úžeh</td><td>Malátnost, bolest hlavy, přehřátí.</td><td>Ochladit, chladivé obklady, tekutiny, monitorovat.</td></tr>
-        </tbody>
-      </table>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Problém</th>
+              <th>Příznaky</th>
+              <th>Řešení</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td>Hyperventilace</td><td>Rychlé dýchání, brnění končetin a obličeje, málo CO₂.</td><td>Ne kyslík. Guajacuran / Diazepam. Dýchání přes sáček.</td></tr>
+            <tr><td>Nízký tlak</td><td>Slabost, závrať, zvracení, bledost, nižší tlak.</td><td>Nohy nahoru, voda, cola, chladit. Doporučit nevzít dřív antihypertenziva.</td></tr>
+            <tr><td>Hypoxie</td><td>Dušnost, únava, zmatenost, cyanóza.</td><td>Kyslík, monitorování saturace, případně léky dle příčiny.</td></tr>
+            <tr><td>Nevolnost / kinetóza</td><td>Nauzea, bolest hlavy, malátnost.</td><td>Ne kyslík. Kinedryl, zázvor, cola.</td></tr>
+            <tr><td>Astma</td><td>Sípání, kašel, sevřený hrudník, těžké dýchání.</td><td>Inhalátor, kyslík, klid, čerstvý vzduch.</td></tr>
+            <tr><td>Anafylaxe</td><td>Svědění, kopřivka, otok, dušnost, porucha vědomí.</td><td>Vždy vyvolat lékaře. Dithiaden. EpiPen jen lékař nebo pacient sám.</td></tr>
+            <tr><td>Epilepsie</td><td>Křeče, záškuby, krátká ztráta vědomí. Po záchvatu může následovat 10–20 minut bezvědomí nebo hlubokého spánku.</td><td>Zajistit bezpečí, odstranit předměty, Diazepam/Guajacuran, sledovat po záchvatu.</td></tr>
+            <tr><td>Hypoglykémie</td><td>Třes, pocení, nervozita, závratě, nízký cukr.</td><td>Glukóza, sladký nápoj nebo cukrovinky, při vědomí i malé sacharidové jídlo.</td></tr>
+            <tr><td>Hyperglykémie</td><td>Žízeň, sucho v ústech, únava, acetonový dech.</td><td>Tekutiny, inzulín pokud je předepsán, při zhoršení lékař.</td></tr>
+            <tr><td>Trombóza</td><td>Otok končetiny, bolest, zarudnutí, horká kůže.</td><td>Zavolat lékaře, případně léky na ředění krve, nehýbat končetinou.</td></tr>
+            <tr><td>Angina pectoris</td><td>Bolest/tlak na hrudi, dušnost, únava.</td><td>Nitroglycerin / Nitromint dle dávkování, kyslík podle potřeby.</td></tr>
+            <tr><td>Embolie</td><td>Náhlá dušnost, kašel s krví, bolest na hrudi, cyanóza.</td><td>Kyslík, lékař, klidový režim, případně antikoagulace.</td></tr>
+            <tr><td>Infarkt</td><td>Tlak na hrudi, nevolnost, studený pot, závratě.</td><td>Aspirin/Acylpyrin, kyslík, lékař, připravit CPR.</td></tr>
+            <tr><td>Mrtvice</td><td>Slabost, porucha řeči, koordinace, citlivosti.</td><td>Zavolat lékaře, zapsat čas, okamžitě přistát, nepodávat léky, BE FAST.</td></tr>
+            <tr><td>Zástava krvácení</td><td>Masivní krvácení, pokles TK, rychlý puls.</td><td>Komprese, tlakový obvaz, klid, zvednout končetinu, lékař.</td></tr>
+            <tr><td>Uzávěr dýchacích cest</td><td>Kašel, sípání, promodrávání.</td><td>Podpora kašle, údery mezi lopatky, Heimlich 5×, pak CPR.</td></tr>
+            <tr><td>Popáleniny</td><td>Zarudnutí, puchýře, zčernání kůže.</td><td>Chladit vodou / NaCl / WaterJel, nic nepřikládat, monitoruji → hrozí šok.<br>Dlaň = 1 %. Při poranění nad 10 % → vážné (u dětí 5 %).<br>Při popálení hlavy a dýchacích cest → vážné.</td></tr>
+            <tr><td>Úpal / úžeh</td><td>Malátnost, bolest hlavy, přehřátí.</td><td>Ochladit, chladivé obklady, tekutiny, monitorovat.</td></tr>
+          </tbody>
+        </table>
+      </div>
     </section>
 
-      <div class="footer">
+    <div class="footer">
       Nejedná se o oficiální dokument kontrolovaný společností.
       Vytvořili: Tereza Shromáždilová, Adam Tauš
     </div>
