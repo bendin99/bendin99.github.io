@@ -1,0 +1,575 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Crew Medical Trainer</title>
+  <style>
+    :root {
+      --blue: #0d4d8b;
+      --blue-dark: #08345e;
+      --blue-soft: #eaf3fb;
+      --orange: #f28c28;
+      --orange-soft: #fff1e2;
+      --ink: #183042;
+      --muted: #5b7386;
+      --bg: #f6f9fc;
+      --card: #ffffff;
+      --ok: #1d7f4e;
+      --bad: #b13737;
+      --shadow: 0 14px 40px rgba(13,77,139,.12);
+      --radius: 22px;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: Inter, Arial, sans-serif;
+      background: linear-gradient(180deg, #f7fbff 0%, #f6f9fc 100%);
+      color: var(--ink);
+    }
+    .wrap {
+      max-width: 1180px;
+      margin: 0 auto;
+      padding: 28px 18px 72px;
+    }
+    .hero {
+      background: linear-gradient(135deg, var(--blue-dark), var(--blue) 55%, #1a6dbd 100%);
+      color: white;
+      border-radius: 30px;
+      padding: 28px;
+      box-shadow: var(--shadow);
+      position: relative;
+      overflow: hidden;
+    }
+    .hero::after {
+      content: "";
+      position: absolute;
+      inset: auto -80px -80px auto;
+      width: 260px;
+      height: 260px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(242,140,40,.95) 0%, rgba(242,140,40,.08) 65%, rgba(242,140,40,0) 72%);
+    }
+    h1,h2,h3 { margin: 0; }
+    .hero h1 { font-size: clamp(1.9rem, 4vw, 3.2rem); line-height: 1.02; margin-bottom: 12px; }
+    .hero p { max-width: 760px; margin: 0; color: rgba(255,255,255,.92); font-size: 1.03rem; }
+    .pillrow { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 18px; }
+    .pill {
+      padding: 9px 14px;
+      border-radius: 999px;
+      background: rgba(255,255,255,.14);
+      border: 1px solid rgba(255,255,255,.14);
+      backdrop-filter: blur(8px);
+      font-size: .95rem;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: 300px 1fr;
+      gap: 22px;
+      margin-top: 22px;
+    }
+    .panel, .content-card {
+      background: var(--card);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+    }
+    .panel { padding: 18px; position: sticky; top: 18px; height: fit-content; }
+    .content-card { padding: 22px; }
+    .mode-btn {
+      width: 100%; text-align: left; border: 0; cursor: pointer;
+      padding: 14px 16px; border-radius: 16px; margin-bottom: 10px;
+      background: #f2f7fc; color: var(--ink); font-weight: 700;
+      transition: .2s ease;
+    }
+    .mode-btn.active { background: linear-gradient(135deg, var(--orange), #ffab52); color: #3b2407; }
+    .mode-btn:hover { transform: translateY(-1px); }
+    .small { color: var(--muted); font-size: .93rem; line-height: 1.5; }
+    .stats {
+      display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-top: 14px;
+    }
+    .stat {
+      background: var(--blue-soft);
+      border-radius: 18px; padding: 14px;
+    }
+    .stat strong { font-size: 1.3rem; display: block; color: var(--blue); }
+    .toolbar {
+      display: flex; gap: 10px; flex-wrap: wrap; justify-content: space-between; align-items: center;
+      margin-bottom: 16px;
+    }
+    select, .btn, input[type="text"] {
+      border: 1px solid #d6e4f1;
+      background: white; color: var(--ink);
+      border-radius: 14px; padding: 12px 14px; font: inherit;
+    }
+    .btn {
+      cursor: pointer; font-weight: 700;
+      background: linear-gradient(135deg, var(--blue), #1f6fbe);
+      color: white; border: none;
+    }
+    .btn.secondary {
+      background: linear-gradient(135deg, var(--orange), #ffad57);
+      color: #442709;
+    }
+    .btn.ghost {
+      background: #eff5fb; color: var(--blue); border: 1px solid #dbe7f3;
+    }
+    .flashcard {
+      min-height: 360px;
+      perspective: 1200px;
+      margin-top: 10px;
+    }
+    .flash-inner {
+      position: relative; width: 100%; height: 100%; min-height: 360px;
+      transform-style: preserve-3d; transition: transform .6s ease;
+    }
+    .flashcard.flipped .flash-inner { transform: rotateY(180deg); }
+    .face {
+      position: absolute; inset: 0; backface-visibility: hidden;
+      border-radius: 24px; padding: 24px;
+      display: flex; flex-direction: column; justify-content: space-between;
+    }
+    .front {
+      background: linear-gradient(150deg, var(--blue-dark), var(--blue)); color: white;
+    }
+    .back {
+      background: linear-gradient(160deg, var(--orange-soft), white);
+      transform: rotateY(180deg);
+      border: 2px solid #ffe1bf;
+    }
+    .tag {
+      display: inline-flex; align-self: flex-start;
+      padding: 8px 12px; border-radius: 999px; font-size: .85rem; font-weight: 800;
+      background: rgba(255,255,255,.14);
+    }
+    .front .term { font-size: clamp(1.8rem, 4vw, 2.8rem); font-weight: 900; margin: 20px 0 10px; }
+    .hint { color: rgba(255,255,255,.8); }
+    .back h3 { color: var(--blue-dark); margin-bottom: 12px; }
+    .answer-grid { display: grid; gap: 14px; }
+    .box {
+      background: white; border: 1px solid #e4edf5; border-radius: 16px; padding: 14px 16px;
+    }
+    .box strong { display: block; margin-bottom: 6px; color: var(--blue-dark); }
+    .quiz-question {
+      font-size: 1.4rem; font-weight: 800; margin-bottom: 16px;
+    }
+    .options { display: grid; gap: 12px; margin-top: 16px; }
+    .option {
+      border: 1px solid #dbe7f3; background: white; border-radius: 16px;
+      padding: 16px; cursor: pointer; font-weight: 600; text-align: left;
+    }
+    .option:hover { border-color: #a9c7e2; }
+    .option.correct { border-color: #c7ead5; background: #ecfbf3; color: var(--ok); }
+    .option.wrong { border-color: #f2c5c5; background: #fff1f1; color: var(--bad); }
+    .feedback {
+      margin-top: 16px; padding: 14px 16px; border-radius: 16px; font-weight: 600;
+      background: #f5f9fc;
+    }
+    .progress {
+      height: 12px; background: #eaf1f8; border-radius: 999px; overflow: hidden; margin: 12px 0 2px;
+    }
+    .bar { height: 100%; width: 0%; background: linear-gradient(90deg, var(--orange), #ffb25d); }
+    .scenario-card {
+      background: linear-gradient(145deg, white, #fbfdff);
+      border: 1px solid #e4edf5; border-radius: 22px; padding: 20px;
+    }
+    .scenario-actions { display: grid; gap: 12px; margin-top: 16px; }
+    .mini-note {
+      font-size: .92rem; color: var(--muted); margin-top: 10px;
+    }
+    .hidden { display: none; }
+    .checklist { display: grid; gap: 12px; margin-top: 14px; }
+    .check-item {
+      padding: 14px 16px; border-radius: 16px; background: #f8fbfe; border: 1px solid #e2edf6;
+      display: flex; gap: 12px; align-items: flex-start;
+    }
+    .check-item input { transform: scale(1.2); margin-top: 3px; }
+    .footer-note {
+      margin-top: 24px; color: var(--muted); font-size: .9rem; line-height: 1.5;
+    }
+    @media (max-width: 920px) {
+      .grid { grid-template-columns: 1fr; }
+      .panel { position: static; }
+      .stats { grid-template-columns: 1fr 1fr 1fr; }
+    }
+    @media (max-width: 640px) {
+      .stats { grid-template-columns: 1fr; }
+      .toolbar { flex-direction: column; align-items: stretch; }
+      .flashcard, .flash-inner { min-height: 430px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <section class="hero">
+      <h1>Crew Medical Trainer</h1>
+    
+    </section>
+
+    <div class="grid">
+      <aside class="panel">
+        <button class="mode-btn active" data-mode="flashcards">🧠 Kartičky</button>
+        <button class="mode-btn" data-mode="quiz">✅ Kvíz</button>
+        <button class="mode-btn" data-mode="scenarios">✈️ Modelové situace</button>
+        <button class="mode-btn" data-mode="checklist">📋 Rychlá checklist příprava</button>
+
+        <div class="stats">
+          <div class="stat"><strong id="statSeen">0</strong>prohlédnuto</div>
+          <div class="stat"><strong id="statCorrect">0</strong>správně</div>
+          <div class="stat"><strong id="statStreak">0</strong>v řadě</div>
+        </div>
+
+      </aside>
+
+      <main>
+        <section id="flashcards" class="content-card">
+          <div class="toolbar">
+            <div>
+              <h2>Kartičky</h2>
+              <div class="small">Otoč kartičku a zopakuj si příznaky a řešení.</div>
+            </div>
+            <div style="display:flex;gap:10px;flex-wrap:wrap;">
+              <select id="flashFilter"></select>
+              <button class="btn ghost" id="shuffleCards">Zamíchat</button>
+              <button class="btn secondary" id="flipCardBtn">Otočit</button>
+              <button class="btn" id="nextCardBtn">Další</button>
+            </div>
+          </div>
+          <div class="progress"><div class="bar" id="flashBar"></div></div>
+          <div class="small" id="flashCounter"></div>
+          <div class="flashcard" id="flashcard">
+            <div class="flash-inner">
+              <div class="face front">
+                <span class="tag" id="flashTag">Stav</span>
+                <div>
+                  <div class="term" id="flashTerm"></div>
+                  <div class="hint">Nejdřív si zkus vybavit příznaky a co dělat.</div>
+                </div>
+                <div class="small" style="color:rgba(255,255,255,.84);">Klikni na „Otočit“ nebo přímo na kartičku.</div>
+              </div>
+              <div class="face back">
+                <div>
+                  <h3 id="backTitle"></h3>
+                  <div class="answer-grid">
+                    <div class="box"><strong>Příznaky</strong><span id="flashSymptoms"></span></div>
+                    <div class="box"><strong>Řešení</strong><span id="flashAction"></span></div>
+                    <div class="box"><strong>Poznámka</strong><span id="flashExtra"></span></div>
+                  </div>
+                </div>
+                <div class="small">Projdi si odpověď a klikni na „Další“.</div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section id="quiz" class="content-card hidden">
+          <div class="toolbar">
+            <div>
+              <h2>Kvíz</h2>
+              <div class="small">Vyber nejlepší odpověď podle dokumentu.</div>
+            </div>
+            <div style="display:flex;gap:10px;flex-wrap:wrap;">
+              <button class="btn ghost" id="newQuizBtn">Nový kvíz</button>
+              <button class="btn" id="nextQuestionBtn">Další otázka</button>
+            </div>
+          </div>
+          <div class="progress"><div class="bar" id="quizBar"></div></div>
+          <div class="small" id="quizCounter"></div>
+          <div class="scenario-card">
+            <div class="quiz-question" id="quizQuestion"></div>
+            <div class="options" id="quizOptions"></div>
+            <div class="feedback hidden" id="quizFeedback"></div>
+          </div>
+        </section>
+
+        <section id="scenarios" class="content-card hidden">
+          <div class="toolbar">
+            <div>
+              <h2>Modelové situace</h2>
+              <div class="small">Nejdřív si v hlavě řekni postup, pak si zobraz správné řešení.</div>
+            </div>
+            <div style="display:flex;gap:10px;flex-wrap:wrap;">
+              <button class="btn ghost" id="prevScenarioBtn">Předchozí</button>
+              <button class="btn secondary" id="revealScenarioBtn">Ukázat řešení</button>
+              <button class="btn" id="nextScenarioBtn">Další</button>
+            </div>
+          </div>
+          <div class="scenario-card">
+            <div class="tag" style="background:var(--blue-soft);color:var(--blue-dark);" id="scenarioType"></div>
+            <h3 style="font-size:1.6rem;margin:14px 0 10px;" id="scenarioTitle"></h3>
+            <p id="scenarioPrompt" style="font-size:1.08rem;line-height:1.65;margin:0;"></p>
+            <div id="scenarioSolution" class="feedback hidden" style="margin-top:18px;"></div>
+            <div class="mini-note" id="scenarioCounter"></div>
+          </div>
+        </section>
+
+        <section id="checklist" class="content-card hidden">
+          <div class="toolbar">
+            <div>
+              <h2>Rychlá checklist příprava</h2>
+              <div class="small">Krátké opáčko klíčových bodů před směnou.</div>
+            </div>
+            <button class="btn ghost" id="resetChecklistBtn">Reset</button>
+          </div>
+          <div class="checklist" id="checklistItems"></div>
+          <div class="footer-note">Obsah vychází z Crew Medial Support. Tohle je studijní aplikace, ne oficiální dokument společnosti.</div>
+        </section>
+      </main>
+    </div>
+  </div>
+
+  <script>
+    const cards = [
+      {category:'Obecné', term:'CPR', symptoms:'Dospělý 30:2, dítě 15:2, novorozenec 3:2. U dětí a novorozence 5 úvodních vdechů.', action:'Vyvolej doktora. Záklon hlavy. Před podáním kyslíku otři ústa a zkus proudění.', extra:'U mrtvice zapiš čas prvních příznaků. U epilepsie stopuj délku záchvatu.'},
+      {category:'Měření', term:'Normální hodnoty', symptoms:'Tlak cca 120/80, glykemie 3,6–6,6 mmol/l, saturace nad 90 %.', action:'Při odchylce vyhodnoť stav, sleduj trend a zvaž další postup podle příčiny.', extra:'Hodnota cukru do 12 mmol/l může být ještě v toleranci dle poznámky v dokumentu.'},
+      {category:'Stavy', term:'Hyperventilace', symptoms:'Rychlé hluboké dýchání, brnění končetin a obličeje, málo CO2.', action:'Nedávat kyslík. Můžeš dát Guajacuran nebo Diazepam. Nechat dýchat do bličáku.', extra:'Kyslík je zde kontraindikovaný.'},
+      {category:'Stavy', term:'Nízký tlak', symptoms:'Slabost, bledost, malátnost, zrychlený pulz, nižší tlak, závratě, zvracení.', action:'Nohy nahoru, voda nebo cola, bličák s ledem.', extra:'Doporučit, aby si léky na tlak nebral dřív, pokud je užívá.'},
+      {category:'Stavy', term:'Hypoxie', symptoms:'Zrychlený dech, dušnost, únava, zmatenost, cyanóza.', action:'Kyslík, monitorování saturace, případně léky dle příčiny hypoxie.', extra:'Vždy sleduj saturaci a klinický stav.'},
+      {category:'Stavy', term:'Nevolnost / kinetóza', symptoms:'Nauzea, pocit na zvracení, bolest hlavy, malátnost.', action:'Nedávat kyslík. Lze podat Kinedryl. Pomáhá zázvor nebo cola.', extra:'Mysli na hydrataci a klidový režim.'},
+      {category:'Stavy', term:'Astma', symptoms:'Dušnost, sípání, kašel, sevřený hrudník, těžké dýchání.', action:'Podání inhalátoru. Kyslík, klid, přístup na čerstvý vzduch.', extra:'Sleduj efekt léčby a celkový stav.'},
+      {category:'Stavy', term:'Anafylaxe', symptoms:'Svědění, kopřivka, dušnost, otok, porucha vědomí.', action:'Vždy vyvolej lékaře. Podávej Dithiaden. EpiPen pouze lékař nebo sám pacient.', extra:'Jde o stav s vysokou naléhavostí.'},
+      {category:'Stavy', term:'Epilepsie', symptoms:'Třes, křeče, záškuby, krátkodobá ztráta vědomí, po záchvatu ospalost.', action:'Zajistit bezpečnost, odstranit předměty kolem, podat Diazepam nebo Guajacuran, volat lékaře.', extra:'Stopuj délku záchvatu a sleduj stav po něm.'},
+      {category:'Stavy', term:'Hypoglykémie', symptoms:'Třes, únava, zmatenost, nervozita, pocení, závratě.', action:'Podat glukózu, sladký nápoj nebo cukrovinky. Při vědomí malé množství jídla se sacharidy.', extra:'Když se stav nelepší, volat lékaře.'},
+      {category:'Stavy', term:'Hyperglykémie', symptoms:'Nadměrná žízeň, časté močení, únava, sucho v ústech, zmatenost, zápach acetonu.', action:'Zajistit tekutiny. Inzulín jen pokud je předepsán.', extra:'Když se stav nelepší, volat lékaře.'},
+      {category:'Stavy', term:'Trombóza', symptoms:'Otok končetiny, bolest nebo citlivost, zarudnutí, horká pokožka.', action:'Zavolat lékaře. Léky na ředění krve pokud jsou předepsané. Nehýbat končetinou.', extra:'Monitoruj stav a klidový režim.'},
+      {category:'Stavy', term:'Angina pectoris', symptoms:'Bolest nebo tlak na hrudi, dušnost, únava, bolest do levé paže/krku/čelisti.', action:'Nitroglycerin nebo Nitromint dle dokumentu. Kyslík podle potřeby.', extra:'Pokud přetrvává a směřuje k infarktu, připrav se na další eskalaci.'},
+      {category:'Stavy', term:'Embolie', symptoms:'Náhlá dušnost, kašel s krví, bolest na hrudi, zrychlený tep, cyanóza.', action:'Kyslík. Zavolat lékaře. Zajistit klidový režim. Případně léky na ředění krve.', extra:'Jedná se o závažný stav.'},
+      {category:'Stavy', term:'Infarkt', symptoms:'Tlak nebo bolest na hrudi, dušnost, nevolnost, závratě, studený pot.', action:'Podat Aspirin/Acylpyrin, pokud není alergie. Kyslík. Volat lékaře a připravit resuscitaci.', extra:'V EMK je Acylpyrin 500 mg na infarkt.'},
+      {category:'Stavy', term:'Mrtvice', symptoms:'Náhlá slabost, porucha řeči, zmatenost, ztráta citlivosti na jedné straně těla.', action:'Volat lékaře. Zapsat čas. Okamžitě přistát. Udržet klid a monitorovat.', extra:'Nepodávat žádné léky. Použít BE FAST test.'},
+      {category:'Stavy', term:'Krvácení', symptoms:'Masivní krvácení z rány, pokles tlaku, zrychlený puls.', action:'Komprese rány, tlakový obvaz, klid, zvednout zasaženou končetinu, volat lékaře.', extra:'V additional equipment kitu je Gelitaspon na zástavu krvácení z nosu.'},
+      {category:'Stavy', term:'Uzávěr dýchacích cest', symptoms:'Kašel, sípání, promodrávání kůže.', action:'Podpořit přirozené kašlání, údery mezi lopatky, Heimlich 5×, při neúspěchu CPR.', extra:'Pěst v úrovni konce hrudní kosti.'},
+      {category:'Stavy', term:'Popáleniny', symptoms:'1. stupeň zarudnutí, 2. stupeň puchýře, 3. stupeň zčernání kůže.', action:'Chladit tekoucí vodou, NaCl 0,9 % nebo WaterJel. Na ránu nic nepřikládat.', extra:'Dlaň = 1 %. Nad 10 % u dospělých a 5 % u dětí je vážné. Hlava/dýchací cesty = vážné.'},
+      {category:'Stavy', term:'Úpal / úžeh', symptoms:'Nauzea, bolest hlavy, malátnost.', action:'Ochladit, chladivé obklady, monitorovat, podávat dostatek tekutin.', extra:'Úžeh = slunce, úpal = přehřátí.'},
+      {category:'Léky', term:'Ibumax / Ibalgin / Ibuprofen', symptoms:'Použití při bolesti, migréně, zánětlivých stavech.', action:'Podat při vhodné indikaci.', extra:'Nevhodné při onemocnění trávicího traktu a alergii dle shrnutí.'},
+      {category:'Léky', term:'Paralen 500 mg', symptoms:'Akutní horečka, bolest zubů a hlavy.', action:'Podat při běžné bolesti nebo teplotě.', extra:'Nevhodné při onemocnění jater.'},
+      {category:'Léky', term:'Valetol', symptoms:'Bolest zubů, hlavy, záněty horních cest dýchacích.', action:'Podat dle indikace.', extra:'Nevhodné při onemocnění jater a dušnosti.'},
+      {category:'Léky', term:'Kinedryl', symptoms:'Kinetóza.', action:'Podat při nevolnosti z pohybu.', extra:'Nevhodný do 2 let.'},
+      {category:'Léky', term:'Dithiaden', symptoms:'Alergická reakce, kopřivka, mírné otoky.', action:'Podat při alergické reakci.', extra:'V anafylaxi zároveň vždy volat lékaře.'},
+      {category:'Léky', term:'Nitromint', symptoms:'Záchvat anginy pectoris.', action:'Pod jazyk dle dokumentu.', extra:'V EMK.'},
+      {category:'Léky', term:'Berodual', symptoms:'Astma, zúžení dýchacích cest.', action:'Podání spreje při bronchospasmu.', extra:'V EMK.'},
+      {category:'Léky', term:'Acylpyrin', symptoms:'Infarkt.', action:'Podat pokud pacient není alergický na kyselinu acetylsalicylovou.', extra:'Nevhodné do 16 let a při alergii na ASA.'}
+    ];
+
+    const quizBank = [
+      {q:'Co podle dokumentu NEdáváš při hyperventilaci?', options:['Kyslík','Guajacuran','Diazepam','Bličák'], correct:0, why:'U hyperventilace je výslovně uvedeno „NE kyslík“.'},
+      {q:'Co je klíčové zapsat u mrtvice?', options:['Saturaci','Čas prvních příznaků','Tělesnou teplotu','Počet vdechů'], correct:1, why:'U mrtvice je zásadní čas prvních příznaků.'},
+      {q:'Jaký je poměr kompresí a vdechů u dospělého?', options:['15:2','30:2','3:2','5:2'], correct:1, why:'Dokument uvádí u dospělého 30:2.'},
+      {q:'Co doporučuje dokument při hypoglykémii?', options:['Jen vodu','Glukózu nebo sladký nápoj','Nedávat nic ústy','Aspirin'], correct:1, why:'Nízký cukr = glukóza, sladký nápoj nebo cukrovinky.'},
+      {q:'Co je doporučené při uzávěru dýchacích cest, když nezaberou údery mezi lopatky a Heimlich?', options:['Posadit pacienta','Podat kyslík','Zahájit CPR','Dát Kinedryl'], correct:2, why:'Po neúspěchu těchto manévrů se dle dokumentu zahajuje CPR.'},
+      {q:'Který stav je spojen s cyanózou a vyžaduje kyslík a monitoring saturace?', options:['Hypoxie','Hyperventilace','Kinetóza','Nízký tlak'], correct:0, why:'Hypoxie se v dokumentu pojí s dušností, únavou a cyanózou.'},
+      {q:'Který lék je v dokumentu uveden pro anafylaxi, ale jen lékař nebo sám pacient?', options:['Berodual','EpiPen','Nitromint','Rennie'], correct:1, why:'EpiPen je uveden s poznámkou „jen lékař nebo sám“.'},
+      {q:'Co platí pro popáleniny hlavy a dýchacích cest?', options:['Jsou vždy lehké','Stačí WaterJel bez dalšího','Jsou vážné','Nepotřebují sledování'], correct:2, why:'Dokument je označuje jako vážné.'},
+      {q:'Která hodnota saturace je v přehledu uvedená jako orientačně v normě?', options:['> 80 %','> 85 %','> 90 %','> 95 %'], correct:2, why:'V měření je uvedeno > 90 %.'},
+      {q:'Jaký lék je v EMK uvedený při záchvatu anginy pectoris?', options:['Nitromint','Endiaron','Occusept Aqua','Guajacuran'], correct:0, why:'Nitromint sprej je v přehledu uveden pro záchvat AP.'},
+      {q:'Co je podle dokumentu vhodné při astmatu?', options:['Jen klid bez léků','Podání inhalátoru a kyslík','Aspirin','Bličák'], correct:1, why:'U astmatu je uveden inhalátor, kyslík, klid a čerstvý vzduch.'},
+      {q:'Co je uvedeno u infarktu?', options:['Nepodávat žádné léky','Podat Aspirin/Acylpyrin, pokud není alergie','Vždy Kinedryl','Jen sledovat'], correct:1, why:'U infarktu je doporučeno podat ASA přípravek, pokud není alergie.'}
+    ];
+
+    const scenarios = [
+      {
+        type:'Situace 1',
+        title:'Cestující má brnění obličeje a prstů a dýchá rychle',
+        prompt:'Působí úzkostně, dýchá hodně a rychle, začíná panikařit a říká, že nemůže popadnout dech. Zkus si říct svůj postup.',
+        solution:'<strong>Správný směr:</strong> myslet na hyperventilaci. <br><br><strong>Postup:</strong> nedávat kyslík, nechat dýchat do bličáku, případně Guajacuran nebo Diazepam, uklidňovat a sledovat stav.'
+      },
+      {
+        type:'Situace 2',
+        title:'Jedna strana těla ochabuje a řeč je divná',
+        prompt:'Cestující najednou špatně mluví, má pokles koutku a slabost jedné poloviny těla. Co jsou tvoje priority?',
+        solution:'<strong>Správný směr:</strong> mrtvice. <br><br><strong>Postup:</strong> zavolat lékaře, zapsat přesný čas prvních příznaků, okamžitě přistát, nepodávat žádné léky, použít BE FAST test a monitorovat funkce.'
+      },
+      {
+        type:'Situace 3',
+        title:'Bolest na hrudi s potem a nevolností',
+        prompt:'Cestující si drží hrudník, je bledý, opocený, je mu na zvracení a motá se mu hlava. Jak budeš uvažovat?',
+        solution:'<strong>Správný směr:</strong> myslet na infarkt. <br><br><strong>Postup:</strong> podat Aspirin/Acylpyrin, pokud není alergie, podat kyslík, zavolat lékaře a připravit pacienta na případnou resuscitaci.'
+      },
+      {
+        type:'Situace 4',
+        title:'Sípání a pocit sevřeného hrudníku',
+        prompt:'Cestující obtížně dýchá, sípe a říká, že se mu špatně nadechuje. Jaký postup si zkontroluješ?',
+        solution:'<strong>Správný směr:</strong> astma nebo zúžení dýchacích cest. <br><br><strong>Postup:</strong> podat inhalátor, kyslík, zajistit klid a přístup na čerstvý vzduch, sledovat efekt.'
+      },
+      {
+        type:'Situace 5',
+        title:'Po jídle vyrážka, otok a dušnost',
+        prompt:'Cestující začíná mít kopřivku, svědění, otéká a hůř dýchá. Co uděláš?',
+        solution:'<strong>Správný směr:</strong> anafylaxe. <br><br><strong>Postup:</strong> vždy vyvolat lékaře, podat Dithiaden, EpiPen pouze lékař nebo sám pacient, stav je urgentní.'
+      },
+      {
+        type:'Situace 6',
+        title:'Silné křeče a následná ospalost',
+        prompt:'Cestující má křeče a po nich upadá do hlubokého spánku. Jaké body musíš mít pod kontrolou?',
+        solution:'<strong>Správný směr:</strong> epileptický záchvat. <br><br><strong>Postup:</strong> zajistit bezpečnost okolí, odstranit předměty, stopovat délku záchvatu, lze podat Diazepam nebo Guajacuran, zavolat lékaře a sledovat stav po záchvatu.'
+      }
+    ];
+
+    const checklist = [
+      'Znám poměry CPR: dospělý 30:2, dítě 15:2, novorozenec 3:2.',
+      'Pamatuju si 5 úvodních vdechů u dítěte a novorozence.',
+      'Vím, že u mrtvice musím zapsat čas prvních příznaků.',
+      'Vím, že u epilepsie stopuju délku záchvatu.',
+      'Vím, že hyperventilace = NE kyslík.',
+      'Vím, že hypoxie = kyslík + monitoring saturace.',
+      'Pamatuju si orientační normy: tlak 120/80, glykemie 3,6–6,6, saturace > 90 %.',
+      'Vím, kdy myslet na infarkt a kdy podat ASA, pokud není alergie.',
+      'Pamatuju si, že EpiPen pouze lékař nebo sám pacient.',
+      'Umím základní postup při uzávěru DC: kašel, lopatky, Heimlich, CPR.',
+      'Vím, jak řešit popáleniny a že nic nepřikládám na ránu.',
+      'Pamatuju si, že tento materiál je studijní a ne oficiální firemní dokument.'
+    ];
+
+    const state = { seen: 0, correct: 0, streak: 0, cardIndex: 0, quizIndex: 0, scenarioIndex: 0, filteredCards: [...cards], answeredCurrent: false };
+
+    const byId = id => document.getElementById(id);
+    const flashcard = byId('flashcard');
+
+    function updateStats() {
+      byId('statSeen').textContent = state.seen;
+      byId('statCorrect').textContent = state.correct;
+      byId('statStreak').textContent = state.streak;
+    }
+
+    function shuffle(arr) {
+      const copy = [...arr];
+      for (let i = copy.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [copy[i], copy[j]] = [copy[j], copy[i]];
+      }
+      return copy;
+    }
+
+    function setupFilter() {
+      const select = byId('flashFilter');
+      const categories = ['Vše', ...new Set(cards.map(c => c.category))];
+      select.innerHTML = categories.map(c => `<option value="${c}">${c}</option>`).join('');
+      select.addEventListener('change', () => {
+        state.filteredCards = select.value === 'Vše' ? [...cards] : cards.filter(c => c.category === select.value);
+        state.cardIndex = 0;
+        renderCard();
+      });
+    }
+
+    function renderCard() {
+      const list = state.filteredCards.length ? state.filteredCards : cards;
+      const card = list[state.cardIndex % list.length];
+      byId('flashTag').textContent = card.category;
+      byId('flashTerm').textContent = card.term;
+      byId('backTitle').textContent = card.term;
+      byId('flashSymptoms').textContent = card.symptoms;
+      byId('flashAction').textContent = card.action;
+      byId('flashExtra').textContent = card.extra;
+      byId('flashCounter').textContent = `Kartička ${state.cardIndex + 1} z ${list.length}`;
+      byId('flashBar').style.width = `${((state.cardIndex + 1) / list.length) * 100}%`;
+      flashcard.classList.remove('flipped');
+      state.seen += 1;
+      updateStats();
+    }
+
+    function nextCard() {
+      const list = state.filteredCards.length ? state.filteredCards : cards;
+      state.cardIndex = (state.cardIndex + 1) % list.length;
+      renderCard();
+    }
+
+    function renderQuiz() {
+      const q = quizBank[state.quizIndex % quizBank.length];
+      byId('quizQuestion').textContent = q.q;
+      byId('quizOptions').innerHTML = '';
+      q.options.forEach((opt, idx) => {
+        const btn = document.createElement('button');
+        btn.className = 'option';
+        btn.textContent = opt;
+        btn.onclick = () => answerQuiz(idx, btn);
+        byId('quizOptions').appendChild(btn);
+      });
+      const fb = byId('quizFeedback');
+      fb.classList.add('hidden');
+      fb.innerHTML = '';
+      state.answeredCurrent = false;
+      byId('quizCounter').textContent = `Otázka ${state.quizIndex + 1} z ${quizBank.length}`;
+      byId('quizBar').style.width = `${((state.quizIndex + 1) / quizBank.length) * 100}%`;
+    }
+
+    function answerQuiz(index, clickedBtn) {
+      if (state.answeredCurrent) return;
+      state.answeredCurrent = true;
+      const q = quizBank[state.quizIndex % quizBank.length];
+      [...document.querySelectorAll('.option')].forEach((btn, idx) => {
+        if (idx === q.correct) btn.classList.add('correct');
+        if (idx === index && idx !== q.correct) btn.classList.add('wrong');
+      });
+      const ok = index === q.correct;
+      if (ok) {
+        state.correct += 1;
+        state.streak += 1;
+      } else {
+        state.streak = 0;
+      }
+      updateStats();
+      const fb = byId('quizFeedback');
+      fb.classList.remove('hidden');
+      fb.innerHTML = ok ? `✅ Správně. ${q.why}` : `❌ Správně je: <strong>${q.options[q.correct]}</strong>. ${q.why}`;
+    }
+
+    function nextQuiz() {
+      state.quizIndex = (state.quizIndex + 1) % quizBank.length;
+      renderQuiz();
+    }
+
+    function newQuiz() {
+      const shuffled = shuffle(quizBank);
+      quizBank.splice(0, quizBank.length, ...shuffled);
+      state.quizIndex = 0;
+      renderQuiz();
+    }
+
+    function renderScenario() {
+      const s = scenarios[state.scenarioIndex % scenarios.length];
+      byId('scenarioType').textContent = s.type;
+      byId('scenarioTitle').textContent = s.title;
+      byId('scenarioPrompt').textContent = s.prompt;
+      byId('scenarioSolution').innerHTML = s.solution;
+      byId('scenarioSolution').classList.add('hidden');
+      byId('scenarioCounter').textContent = `Situace ${state.scenarioIndex + 1} z ${scenarios.length}`;
+    }
+
+    function renderChecklist() {
+      const host = byId('checklistItems');
+      host.innerHTML = checklist.map((item, i) => `
+        <label class="check-item">
+          <input type="checkbox" data-check="${i}">
+          <span>${item}</span>
+        </label>
+      `).join('');
+    }
+
+    function switchMode(mode) {
+      document.querySelectorAll('.mode-btn').forEach(btn => btn.classList.toggle('active', btn.dataset.mode === mode));
+      ['flashcards','quiz','scenarios','checklist'].forEach(id => byId(id).classList.toggle('hidden', id !== mode));
+    }
+
+    document.querySelectorAll('.mode-btn').forEach(btn => btn.addEventListener('click', () => switchMode(btn.dataset.mode)));
+    byId('flipCardBtn').addEventListener('click', () => flashcard.classList.toggle('flipped'));
+    flashcard.addEventListener('click', () => flashcard.classList.toggle('flipped'));
+    byId('nextCardBtn').addEventListener('click', nextCard);
+    byId('shuffleCards').addEventListener('click', () => {
+      state.filteredCards = shuffle(state.filteredCards.length ? state.filteredCards : cards);
+      state.cardIndex = 0;
+      renderCard();
+    });
+    byId('nextQuestionBtn').addEventListener('click', nextQuiz);
+    byId('newQuizBtn').addEventListener('click', newQuiz);
+    byId('revealScenarioBtn').addEventListener('click', () => byId('scenarioSolution').classList.remove('hidden'));
+    byId('nextScenarioBtn').addEventListener('click', () => { state.scenarioIndex = (state.scenarioIndex + 1) % scenarios.length; renderScenario(); });
+    byId('prevScenarioBtn').addEventListener('click', () => { state.scenarioIndex = (state.scenarioIndex - 1 + scenarios.length) % scenarios.length; renderScenario(); });
+    byId('resetChecklistBtn').addEventListener('click', () => document.querySelectorAll('#checklistItems input').forEach(el => el.checked = false));
+
+    setupFilter();
+    renderCard();
+    renderQuiz();
+    renderScenario();
+    renderChecklist();
+    updateStats();
+  </script>
+</body>
+</html>
