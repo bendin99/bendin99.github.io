@@ -4,7 +4,8 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Crew Medical Support</title>
-  <link rel="apple-touch-icon" href="icon-cms.png">
+    <link rel="apple-touch-icon" href="icon-cms.png">
+
   <style>
     :root {
       --blue: #0d4f8b;
@@ -21,26 +22,6 @@
       --danger: #c73a2d;
       --ok: #2f7a45;
     }
-
-/* sjednocení fontu ve všech sloupcích tabulky */
-table td,
-table th {
-  font-size: 14px;
-  line-height: 1.4;
-}
-
-/* pojistka konkrétně pro poslední sloupec */
-table td:last-child,
-table th:last-child {
-  font-size: 14px;
-}
-
-@media (max-width: 768px) {
-  table td,
-  table th {
-    font-size: 13px;
-  }
-}
 
     * { box-sizing: border-box; }
     html { scroll-behavior: smooth; }
@@ -350,6 +331,18 @@ table th:last-child {
       min-width: 410px;
     }
 
+    table.conditions-table th,
+    table.conditions-table td {
+      font-size: 14px;
+      line-height: 1.45;
+    }
+
+    table.conditions-table td:nth-child(3),
+    table.conditions-table th:nth-child(3) {
+      font-size: 14px;
+      line-height: 1.45;
+    }
+
     th, td {
       text-align: left;
       vertical-align: top;
@@ -478,6 +471,17 @@ table th:last-child {
 
       table.conditions-table {
         min-width: 980px;
+      }
+
+      table.conditions-table th,
+      table.conditions-table td {
+        font-size: 13px;
+        line-height: 1.4;
+      }
+
+      table.conditions-table td:nth-child(3),
+      table.conditions-table th:nth-child(3) {
+        font-size: 13px;
       }
 
       th, td {
@@ -656,7 +660,7 @@ table th:last-child {
               <tr><th>Lék</th><th>Kdy</th><th>Kdy ne</th></tr>
             </thead>
             <tbody>
-              <tr><td>Ibumax<br>Ibalgin<br>Ibuprofen 200 mg</td><td>Zánětlivá onemocnění, bolest, migréna.</td><td>Onemocnění trávicího traktu, alergie.</td></tr>
+              <tr><td>Ibumax / Ibalgin / Ibuprofen 200 mg</td><td>Zánětlivá onemocnění, bolest, migréna.</td><td>Onemocnění trávicího traktu, alergie.</td></tr>
               <tr><td>Paralen 500 mg</td><td>Akutní horečka, bolest zubů a hlavy.</td><td>Onemocnění jater.</td></tr>
               <tr><td>Valetol</td><td>Bolest zubů, hlavy, zánět HCD.</td><td>Onemocnění jater, dušnost.</td></tr>
               <tr><td>Kinedryl</td><td>Kinetóza.</td><td>Intoxikace, těhotenství.</td></tr>
