@@ -91,20 +91,43 @@
     }
 
     .meta {
-      display: flex;
-      flex-wrap: wrap;
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
       gap: 12px;
       margin-top: 20px;
     }
 
     .pill {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 54px;
+      text-align: center;
+      text-decoration: none;
       border: 1px solid rgba(255,255,255,0.2);
       background: rgba(255,255,255,0.08);
       color: var(--white);
-      padding: 10px 14px;
+      padding: 10px 12px;
       border-radius: 14px;
-      font-size: 14px;
+      font-size: 13px;
+      font-weight: 700;
       max-width: 100%;
+      transition: transform 0.18s ease, background 0.18s ease, border-color 0.18s ease;
+    }
+
+    .pill:hover,
+    .pill:focus-visible {
+      background: rgba(255,255,255,0.16);
+      border-color: rgba(255,255,255,0.35);
+      transform: translateY(-1px);
+      outline: none;
+    }
+
+    .pill.menu-pill {
+      min-height: 64px;
+      padding: 12px;
+      font-size: 12px;
+      line-height: 1.25;
     }
 
     .note {
@@ -143,7 +166,7 @@
       gap: 18px;
     }
 
-    .grid-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .grid-2 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
     .grid-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
     .grid-4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
 
@@ -256,6 +279,22 @@
       border-radius: 18px;
     }
 
+
+    table.med-table col:first-child {
+      width: 260px;
+    }
+
+    table.med-table td:first-child,
+    table.med-table th:first-child {
+      white-space: nowrap;
+      word-break: normal;
+    }
+
+    table.med-table.wide-first col:first-child {
+      width: 340px;
+    }
+
+
     th, td {
       text-align: left;
       vertical-align: top;
@@ -324,6 +363,10 @@
       .cpr {
         grid-template-columns: 1fr;
       }
+
+      .meta {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+      }
     }
 
     @media (max-width: 768px) {
@@ -342,9 +385,19 @@
         inset: auto -35px -35px auto;
       }
 
+      .meta {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+      }
+
       .pill {
+        min-height: 50px;
         font-size: 13px;
-        padding: 8px 12px;
+        padding: 8px 10px;
+      }
+
+      .pill.menu-pill {
+        min-height: 58px;
+        font-size: 12px;
       }
 
       .note-card,
@@ -390,11 +443,18 @@
       }
 
       .meta {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
         gap: 8px;
       }
 
-      .pill {
+      .pill,
+      .pill.menu-pill {
         width: 100%;
+      }
+
+      table.med-table col:first-child,
+      table.med-table.wide-first col:first-child {
+        width: 240px;
       }
 
       table {
@@ -439,17 +499,19 @@
       <h1>Crew Medical Support</h1>
 
       <div class="meta">
-        <div class="pill">Nezapomeň</div>
-        <div class="pill">Vyvolej doktora</div>
-        <div class="pill">CPR</div>
-        <div class="pill">Měření</div>
-        <div class="pill">Léky a použití</div>
-        <div class="pill">Njčastější stavy</div>
+        <a class="pill" href="#first-steps">Nezapomeň</a>
+        <a class="pill" href="#doctor-call">Vyvolej doktora</a>
+        <a class="pill" href="#cpr">CPR</a>
+        <a class="pill" href="#measurements">Měření</a>
+        <a class="pill menu-pill" href="#kit-first-aid">First Aid Kit</a>
+        <a class="pill menu-pill" href="#kit-emergency">Emergency Medical Kit</a>
+        <a class="pill menu-pill" href="#kit-additional">First Aid Additional Equipment Kit</a>
+        <a class="pill" href="#conditions">Nejčastější stavy</a>
       </div>
     </section>
 
     <section class="section note">
-      <div class="note-card danger-box">
+      <div class="note-card danger-box" id="first-steps">
         <div class="kicker">Nezapomeň</div>
         <h2>První kroky při zásahu</h2>
         <ul>
@@ -460,7 +522,7 @@
           <li>U epilepsie měř délku záchvatu.</li>
         </ul>
       </div>
-      <div class="note-card ok-box">
+      <div class="note-card ok-box" id="doctor-call">
         <div class="kicker">Hlášení pro cestující</div>
         <h2>Vyvolej doktora</h2>
         <p><strong>CZ:</strong> Vážení cestující, jeden z našich cestujících potřebuje lékařskou pomoc. Pokud se na palubě nachází lékař, případně jiný zdravotnický personál, prosíme, aby okamžitě kontaktoval posádku.</p>
@@ -468,7 +530,7 @@
       </div>
     </section>
 
-    <section class="section card">
+    <section class="section card" id="cpr">
       <div class="headline-row">
         <div>
           <div class="kicker">Život zachraňující minimum</div>
@@ -495,7 +557,7 @@
       </div>
     </section>
 
-    <section class="section card">
+    <section class="section card" id="measurements">
       <div class="headline-row">
         <div>
           <div class="kicker">Kontrola stavu</div>
@@ -520,13 +582,13 @@
     </section>
 
 
-    <h2>Léky a použití</h2>
 
     <section class="section grid-2">
-      <div class="card">
+      <div class="card" id="kit-first-aid">
         <span class="tag blue">First Aid Kit</span>
         <div class="table-wrap">
-          <table>
+          <table class="med-table">
+            <colgroup><col><col><col></colgroup>
             <thead>
               <tr><th>Lék</th><th>Kdy</th><th>Kdy ne</th></tr>
             </thead>
@@ -547,10 +609,11 @@
         </div>
       </div>
 
-      <div class="card">
+      <div class="card" id="kit-emergency">
         <span class="tag">Emergency Medical Kit</span>
         <div class="table-wrap">
-          <table>
+          <table class="med-table">
+            <colgroup><col><col><col></colgroup>
             <thead>
               <tr><th>Pomůcka / lék</th><th>Použití</th><th>Omezení</th></tr>
             </thead>
@@ -565,10 +628,11 @@
         </div>
       </div>
 
-      <div class="card">
+      <div class="card" id="kit-additional">
         <span class="tag">First Aid Additional Equipment Kit</span>
         <div class="table-wrap">
-          <table>
+          <table class="med-table wide-first">
+            <colgroup><col><col><col></colgroup>
             <thead>
               <tr><th>Pomůcka / lék</th><th>Použití</th><th>Omezení</th></tr>
             </thead>
@@ -585,7 +649,7 @@
       </div>
     </section>
 
-    <section class="section card">
+    <section class="section card" id="conditions">
       <div class="headline-row">
         <div>
           <div class="kicker">Rychlá orientace</div>
