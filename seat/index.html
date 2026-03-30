@@ -4,14 +4,13 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
 <title>In-flight asistent</title>
-<meta name="theme-color" content="#004289" />
-  <meta name="apple-mobile-web-app-capable" content="yes" />
-  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
-  <meta name="apple-mobile-web-app-title" content="In-flight asistent" />
-  <link rel="apple-touch-icon" href="icon-b738.png" />
-  <link rel="manifest" href="manifest.json" />
+<link rel="apple-touch-icon" href="icon-b738.png">
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#004289">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="In-flight asistent">
 
-  
 <style>
 :root{
   --blue:#004289;
@@ -112,6 +111,19 @@ button.small{padding:8px 10px;font-size:.9rem;flex:0 0 calc(50% - 4px)}
 .swatch{width:14px;height:14px;border-radius:4px;border:1px solid rgba(0,0,0,.08);flex:0 0 14px}
 .list{max-height:220px;overflow:auto}
 .list-item{padding:10px;border:1px solid var(--line);border-radius:12px;margin-bottom:8px;background:var(--panel);color:var(--text)}
+.delivery-chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.delivery-chip{border:1px solid var(--line);background:var(--panel-soft);color:var(--text);border-radius:999px;padding:6px 10px;font-size:.82rem;font-weight:700;cursor:pointer}
+.delivery-chip.done{background:#dcfce7;border-color:#86efac;color:#166534}
+.delivery-chip.partial{background:#fef3c7;border-color:#fcd34d;color:#92400e}
+.delivery-chip .tick{margin-left:4px;font-weight:900}
+.delivery-hint{margin-top:6px;font-size:.78rem;color:var(--muted)}
+.delivery-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
+.delivery-action{border:1px solid var(--line);background:var(--panel-soft);color:var(--text);border-radius:10px;padding:8px 10px;font-size:.8rem;font-weight:800;cursor:pointer}
+.delivery-action.done{background:#dcfce7;border-color:#86efac;color:#166534}
+.seat-top{display:flex;align-items:center;justify-content:space-between;gap:4px}
+.seat-status{display:inline-flex;align-items:center;justify-content:center;width:16px;height:16px;border-radius:999px;font-size:.68rem;font-weight:900;border:1px solid var(--line);background:var(--panel-soft);color:var(--muted);flex:0 0 16px}
+.seat-status.partial{background:#fef3c7;border-color:#fcd34d;color:#92400e}
+.seat-status.done{background:#dcfce7;border-color:#86efac;color:#166534}
 .seatmap-wrap{max-width:1240px;margin:0 auto}
 .topbar{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;align-items:flex-start;margin-bottom:14px}
 .seatmap{background:var(--panel);border:1px solid var(--line);border-radius:26px;box-shadow:var(--shadow);padding:16px 12px 22px;overflow:hidden}
@@ -181,6 +193,7 @@ button.small{padding:8px 10px;font-size:.9rem;flex:0 0 calc(50% - 4px)}
   .rownum{font-size:.78rem}
   .seat{min-height:48px;max-height:48px;border-radius:10px;padding:4px 4px 3px}
   .seat-id{font-size:.72rem;margin-bottom:2px}
+  .seat-status{width:14px;height:14px;font-size:.6rem}
   .seat-meta{font-size:.53rem;gap:2px}
   .pill{padding:1px 4px}
   .aisle{font-size:.6rem}
@@ -478,19 +491,37 @@ button.small{padding:8px 10px;font-size:.9rem;flex:0 0 calc(50% - 4px)}
 <script>
 const ALL_ROWS = Array.from({length:34}, (_,i)=>i+1).filter(r => ![15,16].includes(r));
 const EXIT_ROWS = [17,18];
-const STORAGE_KEY = 'b738-seatmap-clean-v5';
+const STORAGE_KEY = 'b738-seatmap-clean-v6';
 const FRESH_PRODUCTS = ['PŠ', 'PV', 'Croque', 'Bloomer', 'Párek', 'Pasta', 'Pork', 'Bageta'];
 const CATERING_PRODUCTS = ['SLML', 'SMML', 'SNML', 'SOML', 'SYML', 'SZML'];
 const HIDDEN_SEATS = ['6D','6E','6F'];
 
 let state = { flightNo:'', routing:'', flightTime:'', paxCount:'', startTime:'', generalNote:'', reverse:false, dark:false, show6def:false, seats:{} };
 let currentSeat = null;
+let currentSummaryMode = null;
 let modalFresh = {};
 let modalCatering = {};
 
 function seatKey(row, letter){ return `${row}${letter}`; }
-function blankSeatData(){ return { extraCatering:{}, customCatering:'', specialPax:[], customPax:'', fresh:{}, note:'' }; }
-function getSeatData(key){ return state.seats[key] || blankSeatData(); }
+function blankSeatData(){ return { extraCatering:{}, deliveredCatering:{}, customCatering:'', specialPax:[], customPax:'', fresh:{}, deliveredFresh:{}, note:'' }; }
+function clampDelivered(delivered, source){
+  const normalized = {};
+  Object.entries(source || {}).forEach(([name, qty]) => {
+    const max = Math.max(0, Number(qty) || 0);
+    const val = Math.min(max, Math.max(0, Number((delivered || {})[name]) || 0));
+    if(val > 0) normalized[name] = val;
+  });
+  return normalized;
+}
+function normalizeSeatData(data){
+  const base = {...blankSeatData(), ...(data || {})};
+  base.fresh = Object.fromEntries(Object.entries(base.fresh || {}).filter(([_,v]) => Number(v) > 0));
+  base.extraCatering = Object.fromEntries(Object.entries(base.extraCatering || {}).filter(([_,v]) => Number(v) > 0));
+  base.deliveredFresh = clampDelivered(base.deliveredFresh, base.fresh);
+  base.deliveredCatering = clampDelivered(base.deliveredCatering, base.extraCatering);
+  return base;
+}
+function getSeatData(key){ return normalizeSeatData(state.seats[key]); }
 function hasCounts(obj){ return Object.values(obj || {}).some(v => Number(v) > 0); }
 function totalCounts(obj){ return Object.values(obj || {}).reduce((a,b) => a + (Number(b) || 0), 0); }
 function hasSeatData(data){
@@ -498,6 +529,79 @@ function hasSeatData(data){
 }
 function summarizeCounts(obj){
   return Object.entries(obj || {}).filter(([k,v]) => Number(v) > 0).map(([k,v]) => `${v}× ${k}`).join(', ');
+}
+function deliveryStatusClass(delivered, total){
+  if(delivered <= 0) return '';
+  if(delivered >= total) return ' done';
+  return ' partial';
+}
+function buildDeliveryChips(type, seat, source, delivered){
+  const chips = [];
+  Object.entries(source || {}).forEach(([name, qty]) => {
+    const total = Number(qty) || 0;
+    const done = Math.min(total, Math.max(0, Number((delivered || {})[name]) || 0));
+    for(let i = 0; i < total; i++){
+      const finished = i < done;
+      chips.push(
+        `<button type="button" class="delivery-chip${finished ? deliveryStatusClass(done, total) : ''}" data-delivery-type="${type}" data-seat="${seat}" data-product="${escapeHtml(name)}" data-index="${i}">${escapeHtml(name)}${finished ? '<span class="tick">✓</span>' : ''}</button>`
+      );
+    }
+  });
+  return chips.join('');
+}
+function summarizeWithDelivery(obj, delivered){
+  return Object.entries(obj || {}).filter(([_,v]) => Number(v) > 0).map(([k,v]) => {
+    const total = Number(v) || 0;
+    const done = Math.min(total, Math.max(0, Number((delivered || {})[k]) || 0));
+    return done > 0 ? `${done}/${total} ${k}` : `${total}× ${k}`;
+  }).join(', ');
+}
+function getDeliveryTotals(source, delivered){
+  const total = totalCounts(source);
+  const done = totalCounts(clampDelivered(delivered, source));
+  return { total, done, allDone: total > 0 && done >= total };
+}
+function getSeatDeliveryMeta(data){
+  const freshTotals = getDeliveryTotals(data.fresh, data.deliveredFresh);
+  const cateringTotals = getDeliveryTotals(data.extraCatering, data.deliveredCatering);
+  const total = freshTotals.total + cateringTotals.total;
+  const done = freshTotals.done + cateringTotals.done;
+  if(total <= 0) return { total:0, done:0, state:'none' };
+  return { total, done, state: done >= total ? 'done' : 'partial' };
+}
+function buildSeatStatusBadge(data){
+  const meta = getSeatDeliveryMeta(data);
+  if(meta.total <= 0) return '';
+  const title = meta.state === 'done' ? 'Vše odneseno' : `Odneseno ${meta.done}/${meta.total}`;
+  return `<span class="seat-status ${meta.state}" title="${escapeHtml(title)}">✓</span>`;
+}
+function renderDeliveryActions(type, seat, source, delivered, isSummary){
+  const totals = getDeliveryTotals(source, delivered);
+  if(totals.total <= 0) return '';
+  const label = totals.allDone ? 'Odznačit vše' : 'Označit vše odnesené';
+  return `<div class="delivery-actions"><button type="button" class="delivery-action${totals.allDone ? ' done' : ''}" data-delivery-toggle-all="1" data-delivery-type="${type}" data-seat="${seat}" data-summary-mode="${isSummary ? '1' : '0'}">${label}</button></div>`;
+}
+function renderGlobalDeliveryActions(type, aggregate, aggregateDelivered){
+  const totals = getDeliveryTotals(aggregate, aggregateDelivered);
+  if(totals.total <= 0) return '';
+  const label = totals.allDone ? 'Odznačit vše v souhrnu' : 'Označit vše v souhrnu';
+  return `<div class="delivery-actions"><button type="button" class="delivery-action${totals.allDone ? ' done' : ''}" data-delivery-toggle-global="1" data-delivery-type="${type}">${label}</button></div>`;
+}
+function buildDeliveryBlock(seat, data, type, isSummary){
+  const sourceKey = type === 'fresh' ? 'fresh' : 'extraCatering';
+  const deliveredKey = type === 'fresh' ? 'deliveredFresh' : 'deliveredCatering';
+  const source = data[sourceKey] || {};
+  const delivered = data[deliveredKey] || {};
+  const summary = [summarizeWithDelivery(source, delivered), type === 'catering' ? (data.customCatering || '').trim() : ''].filter(Boolean).join('; ');
+  const chips = buildDeliveryChips(type, seat, source, delivered);
+  const actions = renderDeliveryActions(type, seat, source, delivered, isSummary);
+  return `
+    <strong>${seat}</strong>
+    <div>${escapeHtml(summary)}</div>
+    ${data.note ? `<div class="muted">${escapeHtml(data.note)}</div>` : ''}
+    ${chips ? `<div class="delivery-chips">${chips}</div><div class="delivery-hint">Tapnutím označíš odnesené kusy.</div>` : ''}
+    ${actions}
+  `;
 }
 function shorten(text, max){ text = String(text || ''); return text.length > max ? text.slice(0, max - 1) + '…' : text; }
 function escapeHtml(str){ return String(str).replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;').replaceAll("'","&#039;"); }
@@ -559,7 +663,8 @@ function makeSeat(row, letter){
   seat.dataset.seat = key;
   if(disabled) seat.disabled = true;
 
-  let html = `<div class="seat-id">${key}</div><div class="seat-meta">`;
+  const seatStatusBadge = buildSeatStatusBadge(data);
+  let html = `<div class="seat-top"><div class="seat-id">${key}</div>${seatStatusBadge}</div><div class="seat-meta">`;
   const cateringSummary = summarizeCounts(data.extraCatering);
   if(cateringSummary || (data.customCatering || '').trim()){
     const txt = [cateringSummary, (data.customCatering || '').trim()].filter(Boolean).join('; ');
@@ -650,14 +755,17 @@ function closeSeatModal(){
 function saveSeatData(){
   if(!currentSeat) return;
   const selectedPax = [...document.querySelectorAll('#specialPaxChecks input:checked')].map(cb => cb.value);
-  const data = {
+  const previous = getSeatData(currentSeat);
+  const data = normalizeSeatData({
     extraCatering: {...modalCatering},
+    deliveredCatering: previous.deliveredCatering || {},
     customCatering: document.getElementById('customCatering').value.trim(),
     specialPax: selectedPax,
     customPax: document.getElementById('customPax').value.trim(),
     fresh: {...modalFresh},
+    deliveredFresh: previous.deliveredFresh || {},
     note: document.getElementById('seatNote').value.trim()
-  };
+  });
   if(hasSeatData(data)) state.seats[currentSeat] = data;
   else delete state.seats[currentSeat];
   persist();
@@ -699,7 +807,7 @@ function loadState(){
     const raw = localStorage.getItem(STORAGE_KEY);
     if(raw){
       const parsed = JSON.parse(raw);
-      state = { flightNo: parsed.flightNo || '', routing: parsed.routing || '', flightTime: parsed.flightTime || '', paxCount: parsed.paxCount || '', startTime: parsed.startTime || '', generalNote: parsed.generalNote || '', reverse: !!parsed.reverse, dark: !!parsed.dark, show6def: !!parsed.show6def, seats: parsed.seats || {} };
+      state = { flightNo: parsed.flightNo || '', routing: parsed.routing || '', flightTime: parsed.flightTime || '', paxCount: parsed.paxCount || '', startTime: parsed.startTime || '', generalNote: parsed.generalNote || '', reverse: !!parsed.reverse, dark: !!parsed.dark, show6def: !!parsed.show6def, seats: Object.fromEntries(Object.entries(parsed.seats || {}).map(([key, val]) => [key, normalizeSeatData(val)])) };
     }
   }catch(e){}
   document.getElementById('flightNo').value = state.flightNo;
@@ -752,15 +860,15 @@ function renderFreshList(){
   const box = document.getElementById('freshList');
   box.innerHTML = '';
   const items = Object.entries(state.seats)
-    .map(([seat,d]) => ({ seat, fresh: summarizeCounts(d.fresh), note: d.note || '' }))
-    .filter(x => x.fresh)
+    .map(([seat,d]) => ({ seat, data: normalizeSeatData(d) }))
+    .filter(x => summarizeCounts(x.data.fresh))
     .sort((a,b) => seatSort(a.seat,b.seat));
 
   if(!items.length){ box.innerHTML = '<div class="muted">Zatím nic.</div>'; return; }
   items.forEach(item => {
     const div = document.createElement('div');
     div.className = 'list-item';
-    div.innerHTML = `<strong>${item.seat}</strong><div>${escapeHtml(item.fresh)}</div>${item.note ? `<div class="muted">${escapeHtml(item.note)}</div>` : ''}`;
+    div.innerHTML = buildDeliveryBlock(item.seat, item.data, 'fresh', false);
     box.appendChild(div);
   });
 }
@@ -770,19 +878,15 @@ function renderCateringList(){
   if(!box) return;
   box.innerHTML = '';
   const items = Object.entries(state.seats)
-    .map(([seat,d]) => ({
-      seat,
-      catering: [summarizeCounts(d.extraCatering), (d.customCatering || '').trim()].filter(Boolean).join('; '),
-      note: d.note || ''
-    }))
-    .filter(x => x.catering)
+    .map(([seat,d]) => ({ seat, data: normalizeSeatData(d) }))
+    .filter(x => summarizeCounts(x.data.extraCatering) || (x.data.customCatering || '').trim())
     .sort((a,b) => seatSort(a.seat,b.seat));
 
   if(!items.length){ box.innerHTML = '<div class="muted">Zatím nic.</div>'; return; }
   items.forEach(item => {
     const div = document.createElement('div');
     div.className = 'list-item';
-    div.innerHTML = `<strong>${item.seat}</strong><div>${escapeHtml(item.catering)}</div>${item.note ? `<div class="muted">${escapeHtml(item.note)}</div>` : ''}`;
+    div.innerHTML = buildDeliveryBlock(item.seat, item.data, 'catering', false);
     box.appendChild(div);
   });
 }
@@ -791,6 +895,7 @@ function openSpecialPaxSummaryModal(){
   const title = document.getElementById('summaryTitle');
   const content = document.getElementById('summaryContent');
   content.innerHTML = '';
+  currentSummaryMode = 'specialPax';
   title.textContent = 'Souhrn special PAX';
 
   const aggregate = {};
@@ -825,39 +930,113 @@ function openSummaryModal(type){
   content.innerHTML = '';
 
   let aggregate = {};
+  let aggregateDelivered = {};
   let rows = [];
 
-  Object.entries(state.seats).forEach(([seat, data]) => {
+  Object.entries(state.seats).forEach(([seat, rawData]) => {
+    const data = normalizeSeatData(rawData);
     const source = type === 'fresh' ? (data.fresh || {}) : (data.extraCatering || {});
-    const summary = summarizeCounts(source);
+    const delivered = type === 'fresh' ? (data.deliveredFresh || {}) : (data.deliveredCatering || {});
     const custom = type === 'catering' ? (data.customCatering || '').trim() : '';
-    if(summary || custom){
-      rows.push({seat, summary: [summary, custom].filter(Boolean).join('; ')});
-      Object.entries(source).forEach(([name, qty]) => { aggregate[name] = (aggregate[name] || 0) + Number(qty || 0); });
+    if(summarizeCounts(source) || custom){
+      rows.push({ seat, data });
+      Object.entries(source).forEach(([name, qty]) => {
+        aggregate[name] = (aggregate[name] || 0) + Number(qty || 0);
+      });
+      Object.entries(clampDelivered(delivered, source)).forEach(([name, qty]) => {
+        aggregateDelivered[name] = (aggregateDelivered[name] || 0) + Number(qty || 0);
+      });
     }
   });
 
+  currentSummaryMode = type;
   title.textContent = type === 'fresh' ? 'Souhrn fresh produktů' : 'Souhrn extra cateringu';
 
   const totalBox = document.createElement('div');
   totalBox.className = 'summary-row';
-  const totalParts = Object.entries(aggregate).filter(([k,v]) => v > 0).sort().map(([k,v]) => `${v}× ${k}`);
-  totalBox.innerHTML = `<strong>Celkem:</strong><div style="margin-top:6px">${totalParts.length ? escapeHtml(totalParts.join(', ')) : 'Zatím nic.'}</div>`;
+  const totalText = summarizeWithDelivery(aggregate, aggregateDelivered);
+  totalBox.innerHTML = `<strong>Celkem:</strong><div style="margin-top:6px">${totalText ? escapeHtml(totalText) : 'Zatím nic.'}</div>${renderGlobalDeliveryActions(type, aggregate, aggregateDelivered)}`;
   content.appendChild(totalBox);
 
   rows.sort((a,b) => seatSort(a.seat,b.seat));
   rows.forEach(item => {
     const div = document.createElement('div');
     div.className = 'summary-row';
-    div.innerHTML = `<strong>${item.seat}</strong><div style="margin-top:6px">${escapeHtml(item.summary)}</div>`;
+    div.innerHTML = buildDeliveryBlock(item.seat, item.data, type, true);
     content.appendChild(div);
   });
 
   document.getElementById('summaryModal').classList.add('open');
 }
 
-function closeSummaryModal(){ document.getElementById('summaryModal').classList.remove('open'); }
-function renderAll(){ applyTheme(); updateRotateBtn(); renderSeatMap(); updateSummary(); renderSpecialPaxList(); renderFreshList(); renderCateringList(); }
+function toggleDeliveredItem(seat, type, product, index){
+  const data = getSeatData(seat);
+  const sourceKey = type === 'fresh' ? 'fresh' : 'extraCatering';
+  const deliveredKey = type === 'fresh' ? 'deliveredFresh' : 'deliveredCatering';
+  const total = Number((data[sourceKey] || {})[product] || 0);
+  if(total <= 0) return;
+  const current = Math.min(total, Math.max(0, Number((data[deliveredKey] || {})[product]) || 0));
+  const next = index < current ? index : index + 1;
+  if(next <= 0) delete data[deliveredKey][product];
+  else data[deliveredKey][product] = Math.min(total, next);
+  state.seats[seat] = normalizeSeatData(data);
+  persist();
+  renderAll();
+}
+function toggleDeliveredAll(seat, type){
+  const data = getSeatData(seat);
+  const sourceKey = type === 'fresh' ? 'fresh' : 'extraCatering';
+  const deliveredKey = type === 'fresh' ? 'deliveredFresh' : 'deliveredCatering';
+  const source = data[sourceKey] || {};
+  const totals = getDeliveryTotals(source, data[deliveredKey] || {});
+  if(totals.total <= 0) return;
+  if(totals.allDone){
+    data[deliveredKey] = {};
+  } else {
+    data[deliveredKey] = Object.fromEntries(
+      Object.entries(source).filter(([_, qty]) => Number(qty) > 0).map(([name, qty]) => [name, Number(qty)])
+    );
+  }
+  state.seats[seat] = normalizeSeatData(data);
+  persist();
+  renderAll();
+}
+function toggleDeliveredGlobal(type){
+  const sourceKey = type === 'fresh' ? 'fresh' : 'extraCatering';
+  const deliveredKey = type === 'fresh' ? 'deliveredFresh' : 'deliveredCatering';
+  const aggregate = {};
+  const aggregateDelivered = {};
+  Object.values(state.seats).forEach(rawData => {
+    const data = normalizeSeatData(rawData);
+    Object.entries(data[sourceKey] || {}).forEach(([name, qty]) => {
+      aggregate[name] = (aggregate[name] || 0) + Number(qty || 0);
+    });
+    Object.entries(clampDelivered(data[deliveredKey] || {}, data[sourceKey] || {})).forEach(([name, qty]) => {
+      aggregateDelivered[name] = (aggregateDelivered[name] || 0) + Number(qty || 0);
+    });
+  });
+  const totals = getDeliveryTotals(aggregate, aggregateDelivered);
+  if(totals.total <= 0) return;
+  const markAll = !totals.allDone;
+  Object.entries(state.seats).forEach(([seat, rawData]) => {
+    const data = normalizeSeatData(rawData);
+    const source = data[sourceKey] || {};
+    if(totalCounts(source) <= 0) return;
+    data[deliveredKey] = markAll
+      ? Object.fromEntries(Object.entries(source).filter(([_, qty]) => Number(qty) > 0).map(([name, qty]) => [name, Number(qty)]))
+      : {};
+    state.seats[seat] = normalizeSeatData(data);
+  });
+  persist();
+  renderAll();
+}
+function closeSummaryModal(){ currentSummaryMode = null; document.getElementById('summaryModal').classList.remove('open'); }
+function renderOpenSummaryIfNeeded(){
+  if(!document.getElementById('summaryModal').classList.contains('open')) return;
+  if(currentSummaryMode === 'fresh' || currentSummaryMode === 'catering') openSummaryModal(currentSummaryMode);
+  else if(currentSummaryMode === 'specialPax') openSpecialPaxSummaryModal();
+}
+function renderAll(){ applyTheme(); updateRotateBtn(); renderSeatMap(); updateSummary(); renderSpecialPaxList(); renderFreshList(); renderCateringList(); renderOpenSummaryIfNeeded(); }
 
 function exportJson(){
   persist();
@@ -875,7 +1054,7 @@ function importJson(file){
   reader.onload = e => {
     try{
       const parsed = JSON.parse(e.target.result);
-      state = { flightNo: parsed.flightNo || '', routing: parsed.routing || '', flightTime: parsed.flightTime || '', paxCount: parsed.paxCount || '', startTime: parsed.startTime || '', generalNote: parsed.generalNote || '', reverse: !!parsed.reverse, dark: !!parsed.dark, show6def: !!parsed.show6def, seats: parsed.seats || {} };
+      state = { flightNo: parsed.flightNo || '', routing: parsed.routing || '', flightTime: parsed.flightTime || '', paxCount: parsed.paxCount || '', startTime: parsed.startTime || '', generalNote: parsed.generalNote || '', reverse: !!parsed.reverse, dark: !!parsed.dark, show6def: !!parsed.show6def, seats: Object.fromEntries(Object.entries(parsed.seats || {}).map(([key, val]) => [key, normalizeSeatData(val)])) };
       document.getElementById('flightNo').value = state.flightNo;
       document.getElementById('generalNote').value = state.generalNote;
       persist();
@@ -1023,9 +1202,9 @@ function loadSample(){
     seats:{
       "1A": {extraCatering:{"SLML":1}, customCatering:'', specialPax:["INF"], customPax:'', fresh:{}, note:'rodina s dítětem'},
       "4C": {extraCatering:{}, customCatering:'', specialPax:["WCHR"], customPax:'', fresh:{}, note:'pomoc při deboardingu'},
-      "7D": {extraCatering:{"SNML":1}, customCatering:'', specialPax:[], customPax:'', fresh:{"PŠ":1,"Pasta":1}, note:'po první službě'},
+      "7D": {extraCatering:{"SNML":1}, deliveredCatering:{}, customCatering:'', specialPax:[], customPax:'', fresh:{"PŠ":1,"Pasta":1}, deliveredFresh:{"PŠ":1}, note:'po první službě'},
       "17F": {extraCatering:{}, customCatering:'VIP meal', specialPax:["UMNR"], customPax:'VIP', fresh:{}, note:'předat info SCC'},
-      "21B": {extraCatering:{"SMML":1}, customCatering:'', specialPax:[], customPax:'', fresh:{"Bloomer":2,"Bageta":1}, note:'dodat najednou'},
+      "21B": {extraCatering:{"SMML":1}, deliveredCatering:{"SMML":1}, customCatering:'', specialPax:[], customPax:'', fresh:{"Bloomer":2,"Bageta":1}, deliveredFresh:{"Bloomer":1}, note:'dodat najednou'},
       "6D": {extraCatering:{}, customCatering:'', specialPax:[], customPax:'', fresh:{}, note:''}
     }
   };
@@ -1101,6 +1280,29 @@ document.getElementById('paxCount').addEventListener('input', e => {
 document.getElementById('generalNote').addEventListener('input', persist);
 document.getElementById('rotateBtn').addEventListener('click', rotateMap);
 document.getElementById('findBtn').addEventListener('click', jumpToSeat);
+document.addEventListener('click', e => {
+  const chip = e.target.closest('.delivery-chip');
+  if(chip){
+    toggleDeliveredItem(
+      chip.dataset.seat,
+      chip.dataset.deliveryType,
+      chip.dataset.product,
+      Number(chip.dataset.index)
+    );
+    return;
+  }
+
+  const toggleAllBtn = e.target.closest('[data-delivery-toggle-all="1"]');
+  if(toggleAllBtn){
+    toggleDeliveredAll(toggleAllBtn.dataset.seat, toggleAllBtn.dataset.deliveryType);
+    return;
+  }
+
+  const toggleGlobalBtn = e.target.closest('[data-delivery-toggle-global="1"]');
+  if(toggleGlobalBtn){
+    toggleDeliveredGlobal(toggleGlobalBtn.dataset.deliveryType);
+  }
+});
 
 document.querySelectorAll('.letter-btn').forEach(btn => {
   btn.addEventListener('click', () => {
@@ -1140,5 +1342,16 @@ loadState();
 updateLetterPicker();
 renderAll();
 </script>
+
+<script>
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('./sw.js').catch(err => {
+      console.error('SW registration failed:', err);
+    });
+  });
+}
+</script>
+
 </body>
 </html>
