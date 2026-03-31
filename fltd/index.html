@@ -2,10 +2,7 @@
 <html lang="cs">
 <head>
   <meta charset="UTF-8" />
-  <meta
-    name="viewport"
-    content="width=device-width, initial-scale=1, viewport-fit=cover"
-  />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <title>FDP kalkulačka</title>
 
   <meta name="theme-color" content="#004289" />
@@ -32,12 +29,9 @@
       --radius: 18px;
     }
 
-    * {
-      box-sizing: border-box;
-    }
+    * { box-sizing: border-box; }
 
-    html,
-    body {
+    html, body {
       margin: 0;
       padding: 0;
       background: var(--bg);
@@ -51,9 +45,7 @@
       margin: 0 auto;
     }
 
-    .app-header {
-      margin: 4px 0 18px;
-    }
+    .app-header { margin: 4px 0 18px; }
 
     .title {
       font-size: 28px;
@@ -93,9 +85,7 @@
     }
 
     @media (min-width: 640px) {
-      .grid-2 {
-        grid-template-columns: 1fr 1fr;
-      }
+      .grid-2 { grid-template-columns: 1fr 1fr; }
     }
 
     .field label {
@@ -132,9 +122,7 @@
       gap: 10px;
     }
 
-    .segmented input {
-      display: none;
-    }
+    .segmented input { display: none; }
 
     .segmented label {
       display: flex;
@@ -179,9 +167,7 @@
       box-shadow: 0 8px 20px rgba(242, 142, 0, 0.22);
     }
 
-    .btn:active {
-      transform: translateY(1px);
-    }
+    .btn:active { transform: translateY(1px); }
 
     .results {
       display: grid;
@@ -216,9 +202,7 @@
       line-height: 1.1;
     }
 
-    .orange .result-value {
-      color: #9a5a00;
-    }
+    .orange .result-value { color: #9a5a00; }
 
     .result-sub {
       margin-top: 6px;
@@ -234,9 +218,7 @@
     }
 
     @media (min-width: 640px) {
-      .small-grid {
-        grid-template-columns: 1fr 1fr;
-      }
+      .small-grid { grid-template-columns: 1fr 1fr; }
     }
 
     .mini {
@@ -401,8 +383,8 @@
       </div>
 
       <div class="field" id="delayFields" style="display:none;">
-      <label for="delayDuration">Doba zpoždění</label>
-      <input type="time" id="delayDuration" value="00:00" />
+        <label for="delayDuration">Doba zpoždění</label>
+        <input type="time" id="delayDuration" value="00:00" />
 
         <div style="height:10px;"></div>
 
