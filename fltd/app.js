@@ -270,6 +270,21 @@ function calculateDelayLogic(originalReport, delayDuration, firstMessageTime, ha
 }
 
 function calculateResults() {
+  console.log("DEBUG start calculateResults");
+
+  const reportEl = document.getElementById("report");
+  const sectorsEl = document.getElementById("sectors");
+  const lastLegEl = document.getElementById("lastLeg");
+  const taxiEl = document.getElementById("taxi");
+
+  if (!reportEl) return { error: "Chybí pole report." };
+  if (!sectorsEl) return { error: "Chybí pole sectors." };
+  if (!lastLegEl) return { error: "Chybí pole lastLeg." };
+  if (!taxiEl) return { error: "Chybí pole taxi." };
+
+  const originalReport = toMinutes(reportEl.value || "00:00");
+
+  
   const originalReport = toMinutes(document.getElementById("report")?.value || "00:00");
 
   const utcOffsetHours = parseInt(document.getElementById("utcOffsetHours")?.value ?? "1", 10);
@@ -536,8 +551,19 @@ function renderResults(result) {
 }
 
 function runCalculation() {
-  const result = calculateResults();
-  renderResults(result);
+  try {
+    const result = calculateResults();
+    console.log("DEBUG result:", result);
+    renderResults(result);
+  } catch (err) {
+    console.error("FDP calc crash:", err);
+
+    const infoBox = document.getElementById("infoBox");
+    if (infoBox) {
+      infoBox.className = "status bad";
+      infoBox.textContent = "JS chyba: " + (err?.message || err);
+    }
+  }
 }
 
 document.getElementById("calculateBtn")?.addEventListener("click", runCalculation);
