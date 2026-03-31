@@ -284,9 +284,6 @@ function calculateResults() {
 
   const originalReport = toMinutes(reportEl.value || "00:00");
 
-  
-  const originalReport = toMinutes(document.getElementById("report")?.value || "00:00");
-
   const utcOffsetHours = parseInt(document.getElementById("utcOffsetHours")?.value ?? "1", 10);
   const utcOffsetHalf = parseInt(document.getElementById("utcOffsetHalf")?.value ?? "0", 10);
   const utcOffset =
