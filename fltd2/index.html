@@ -1,0 +1,2130 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<title>In-Flight Asistent</title>
+<link rel="apple-touch-icon" href="icon-b738.png">
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#004289">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="In-Flight Asistent">
+
+<style>
+:root{
+  --blue:#004289;
+  --orange:#F28E00;
+
+  --bg:#f6f8fb;
+  --bg2:#eef3f8;
+  --panel:#ffffff;
+  --panel-soft:#f4f7fb;
+  --line:#d8e1eb;
+  --text:#1f2937;
+  --heading:#004289;
+  --muted:#64748b;
+  --seat:#ffffff;
+  --seat-selected:#dbeafe;
+  --seat-marked:#f3f7ff;
+  --exit:#d8f5d0;
+  --disabled:#eceff4;
+
+  --pill-fresh-bg:#ffe1bf;
+  --pill-fresh-text:#b85c00;
+
+  --pill-pax-bg:#efe7ff;
+  --pill-pax-text:#6d28d9;
+
+  --pill-catering-bg:#ffd6d6;
+  --pill-catering-text:#a11a1a;
+
+  --pill-note-bg:#edf2f7;
+  --pill-note-text:#475569;
+
+  --shadow:0 8px 24px rgba(15,23,42,.08);
+}
+body.dark{
+  --bg:#0b1220;
+  --bg2:#10192b;
+  --panel:#162033;
+  --panel-soft:#1b2942;
+  --line:#30415d;
+  --text:#f8fafc;
+  --heading:#ffffff;
+  --muted:#c3cedd;
+  --seat:#1a2740;
+  --seat-selected:#244a7a;
+  --seat-marked:#263858;
+  --exit:#1e4a20;
+  --disabled:#29364a;
+
+  --pill-fresh-bg:#5a3710;
+  --pill-fresh-text:#ffd39a;
+
+  --pill-pax-bg:#3b2758;
+  --pill-pax-text:#eedbff;
+
+  --pill-catering-bg:#6a1f1f;
+  --pill-catering-text:#ffd7d7;
+
+  --pill-note-bg:#233246;
+  --pill-note-text:#e5eef9;
+
+  --shadow:0 12px 30px rgba(0,0,0,.35);
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{
+  font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+  color:var(--text);
+  background:linear-gradient(180deg,var(--bg),var(--bg2));
+}
+.app{display:grid;grid-template-columns:340px 1fr;min-height:100vh}
+.sidebar{background:var(--panel);border-right:1px solid var(--line);padding:16px;position:sticky;top:0;height:100vh;overflow:auto}
+.main{padding:16px;overflow:auto}
+h1,h2,h3{margin:0 0 10px;color:var(--heading)}
+h1{font-size:1.3rem}
+h2{font-size:1rem}
+p,label,small{color:var(--muted)}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:18px;box-shadow:var(--shadow);padding:14px;margin-bottom:12px}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.row button{flex:0 0 calc(50% - 4px);text-align:center}
+.row.single button{flex:0 0 auto;min-width:180px}
+.space-between{justify-content:space-between}
+input,textarea,button,select{font:inherit}
+input[type=text],textarea{
+  width:100%;border:1px solid var(--line);border-radius:12px;padding:10px 12px;background:var(--panel);color:var(--text);outline:none
+}
+textarea{resize:vertical;min-height:84px}
+button{border:none;border-radius:12px;padding:10px 12px;background:var(--blue);color:#fff;font-weight:700;cursor:pointer}
+button.secondary{background:var(--panel-soft);color:var(--text);border:1px solid var(--line)}
+button.warn{background:var(--orange);color:#fff}
+button.danger{background:#d92d20;color:#fff}
+button.ghost{background:transparent;color:var(--text);border:1px solid var(--line)}
+button.small{padding:8px 10px;font-size:.9rem;flex:0 0 calc(50% - 4px)}
+.summary{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.stat{background:var(--panel-soft);border:1px solid var(--line);border-radius:14px;padding:10px}
+.stat b{display:block;font-size:1.15rem;color:var(--heading)}
+.legend-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.legend-item{display:flex;gap:8px;align-items:center;font-size:.9rem;color:var(--text)}
+.swatch{width:14px;height:14px;border-radius:4px;border:1px solid rgba(0,0,0,.08);flex:0 0 14px}
+.legend-panel{display:none;margin-top:10px}
+.legend-panel.open{display:block}
+.list{max-height:220px;overflow:auto}
+.list-item{padding:8px 10px;border:1px solid var(--line);border-radius:12px;margin-bottom:8px;background:var(--panel);color:var(--text)}
+.delivery-chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.delivery-chip{border:1px solid var(--line);background:var(--panel-soft);color:var(--text);border-radius:999px;padding:6px 10px;font-size:.82rem;font-weight:700;cursor:pointer}
+.delivery-chip.done{background:#dcfce7;border-color:#86efac;color:#166534}
+.delivery-chip.partial{background:#fef3c7;border-color:#fcd34d;color:#92400e}
+.delivery-chip .tick{margin-left:4px;font-weight:900}
+.delivery-hint{margin-top:6px;font-size:.78rem;color:var(--muted)}
+.delivery-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
+.delivery-action{border:1px solid var(--line);background:var(--panel-soft);color:var(--text);border-radius:10px;padding:8px 10px;font-size:.8rem;font-weight:800;cursor:pointer}
+.delivery-action.done{background:#dcfce7;border-color:#86efac;color:#166534}
+.seat-top{display:flex;align-items:center;justify-content:space-between;gap:4px}
+.seat-status{display:inline-flex;align-items:center;justify-content:center;width:16px;height:16px;border-radius:999px;font-size:.68rem;font-weight:900;border:1px solid var(--line);background:var(--panel-soft);color:var(--muted);flex:0 0 16px}
+.seat-status.partial{background:#fef3c7;border-color:#fcd34d;color:#92400e}
+.seat-status.done{background:#dcfce7;border-color:#86efac;color:#166534}
+.seatmap-wrap{max-width:1240px;margin:0 auto}
+.topbar{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;align-items:flex-start;margin-bottom:14px}
+.seatmap{background:var(--panel);border:1px solid var(--line);border-radius:26px;box-shadow:var(--shadow);padding:16px 12px 22px;overflow:hidden}
+.aircraft-head,.aircraft-tail{text-align:center;color:var(--heading);font-size:.82rem;letter-spacing:.18em;margin:4px 0 12px;font-weight:800}
+.grid-header,.seat-row{display:grid;grid-template-columns:36px repeat(3,1fr) 24px repeat(3,1fr);gap:6px;align-items:center}
+.grid-header{position:sticky;top:0;padding:8px 0;background:color-mix(in srgb, var(--bg) 92%, transparent);z-index:2;color:var(--text);font-weight:700;text-align:center}
+.rownum{text-align:center;font-weight:800;color:var(--heading);font-size:.9rem}
+.seat-row{padding:4px 0;border-bottom:1px dashed color-mix(in srgb, var(--line) 75%, transparent)}
+.seat-row.exit-row{background:linear-gradient(90deg,transparent,color-mix(in srgb, #22c55e 18%, transparent),transparent);border-radius:12px}
+.aisle{text-align:center;color:var(--muted);font-size:.72rem}
+.seat{min-height:58px;max-height:58px;border-radius:14px;border:1px solid var(--line);background:var(--seat);padding:6px 6px 5px;text-align:left;cursor:pointer;overflow:hidden;display:flex;flex-direction:column}
+.seat.exit{background:var(--exit)}
+.seat.selected{outline:2px solid color-mix(in srgb, var(--orange) 45%, transparent);background:var(--seat-selected)}
+.seat.has-data{box-shadow:inset 0 0 0 1px color-mix(in srgb, var(--orange) 45%, transparent)}
+.seat.disabled{
+  background:repeating-linear-gradient(135deg,color-mix(in srgb, var(--disabled) 100%, transparent) 0px,color-mix(in srgb, var(--disabled) 100%, transparent) 6px,color-mix(in srgb, var(--panel-soft) 100%, transparent) 6px,color-mix(in srgb, var(--panel-soft) 100%, transparent) 12px);
+  color:var(--muted);cursor:not-allowed;opacity:.9
+}
+.seat-topline{display:flex;align-items:center;justify-content:space-between;gap:4px;margin-bottom:4px}
+.seat-id{font-weight:800;color:var(--heading);font-size:.85rem;line-height:1.1;margin-bottom:0}
+.seat-status-badge{width:16px;height:16px;border-radius:999px;display:inline-flex;align-items:center;justify-content:center;font-size:.68rem;font-weight:900;flex:0 0 16px;border:1px solid transparent}
+.seat-status-badge.done{background:#dcfce7;border-color:#86efac;color:#166534}
+.seat-status-badge.partial{background:#fef3c7;border-color:#fcd34d;color:#92400e}
+.seat-meta{display:flex;flex-direction:column;gap:3px;font-size:.63rem;line-height:1.1;overflow:hidden}
+.pill{display:inline-flex;align-items:center;width:max-content;max-width:100%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding:2px 6px;border-radius:999px;font-weight:700}
+.pill-fresh{background:var(--pill-fresh-bg);color:var(--pill-fresh-text)}
+.pill-pax{background:var(--pill-pax-bg);color:var(--pill-pax-text)}
+.pill-catering{background:var(--pill-catering-bg);color:var(--pill-catering-text)}
+.pill-note{background:var(--pill-note-bg);color:var(--pill-note-text)}
+.muted{color:var(--muted)}
+.modal{position:fixed;inset:0;background:rgba(15,23,42,.38);display:none;align-items:center;justify-content:center;padding:12px;z-index:50}
+.modal.open{display:flex}
+.modal-box{width:min(980px,100%);max-height:92vh;overflow:auto;background:var(--panel);border:1px solid var(--line);border-radius:22px;box-shadow:0 18px 50px rgba(15,23,42,.18);padding:16px;color:var(--text)}
+.modal-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.section-block{display:flex;flex-direction:column}
+.section-title{font-size:.95rem;font-weight:800;color:var(--heading);margin:0 0 8px}
+.check-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px 12px;color:var(--text)}
+.products{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.product{border:1px solid var(--line);border-radius:14px;padding:8px 10px;background:var(--panel)}
+.product-name{font-weight:800;color:var(--heading);margin-bottom:6px;font-size:.92rem}
+.qty{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.qty-controls{display:flex;align-items:center;gap:10px}
+.qty-btn{width:40px;height:40px;border-radius:10px;background:var(--panel-soft);color:var(--text);border:1px solid var(--line);font-weight:800;padding:0;font-size:1.2rem;display:flex;align-items:center;justify-content:center;touch-action:manipulation}
+.qty-number{min-width:28px;text-align:center;font-weight:800;font-size:1rem;color:var(--text)}
+.cart{margin-top:8px;background:var(--panel-soft);border:1px dashed var(--line);border-radius:12px;padding:10px;min-height:48px;color:var(--text)}
+.custom-product-input{width:100%;text-transform:uppercase}
+.list-item-head,.summary-row-head{display:flex;align-items:flex-start;justify-content:space-between;gap:8px;margin-bottom:6px}
+.list-item-head > strong,.summary-row-head > strong{flex:1 1 auto}
+.delivery-actions{display:flex;justify-content:flex-end;align-items:flex-start;margin-top:0;flex:0 0 auto}
+.delivery-bulk-btn{padding:6px 8px;font-size:.78rem;line-height:1.1}
+.delivery-chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
+.delivery-chip{padding:5px 8px;font-size:.74rem;line-height:1.1}
+.code-help{margin-top:10px;font-size:.88rem;color:var(--text);background:var(--panel-soft);border:1px dashed var(--line);padding:10px;border-radius:12px}
+.sticky-actions{position:sticky;bottom:0;background:linear-gradient(180deg,transparent,var(--panel) 22%);padding-top:10px}
+.summary-modal-list{max-height:60vh;overflow:auto}
+.summary-row{padding:8px 10px;border:1px solid var(--line);border-radius:12px;margin-bottom:8px;background:var(--panel)}
+
+.letter-picker{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:8px;margin-top:8px}
+.letter-btn{padding:10px 0;text-align:center}
+.letter-btn.active{background:var(--orange);color:#fff;border:none}
+
+.search-grid{display:grid;grid-template-columns:1fr auto;gap:8px}
+.search-grid input{min-width:0}
+.search-action{display:flex;align-items:end;justify-content:flex-end}
+@media (max-width:1100px){.app{grid-template-columns:1fr}.sidebar{position:relative;height:auto}}
+@media (max-width:820px){
+  .main,.sidebar{padding:12px}
+  .summary,.legend-grid{grid-template-columns:1fr}
+  .modal-grid{grid-template-columns:1fr}
+  .products{grid-template-columns:1fr 1fr}
+}
+@media (max-width:640px){
+  h1{font-size:1.15rem}
+  .topbar{margin-bottom:10px}
+  .seatmap{padding:12px 8px 16px;border-radius:18px}
+  .grid-header,.seat-row{grid-template-columns:28px repeat(3,minmax(0,1fr)) 14px repeat(3,minmax(0,1fr));gap:4px}
+  .grid-header{font-size:.72rem}
+  .rownum{font-size:.78rem}
+  .seat{min-height:48px;max-height:48px;border-radius:10px;padding:4px 4px 3px}
+  .seat-id{font-size:.72rem;margin-bottom:2px}
+  .seat-status{width:14px;height:14px;font-size:.6rem}
+  .seat-meta{font-size:.53rem;gap:2px}
+  .pill{padding:1px 4px}
+  .aisle{font-size:.6rem}
+  .card{padding:12px;border-radius:14px}
+  .modal-box{padding:12px;border-radius:18px}
+  .product{padding:7px 8px}
+  .product-name{font-size:.84rem}
+  .qty-btn{width:36px;height:36px}
+  .seat-status-badge{width:14px;height:14px;font-size:.62rem;flex-basis:14px}
+  .check-grid{grid-template-columns:1fr}
+  button{padding:9px 10px}
+  .mobile-order-1{order:1}.mobile-order-2{order:2}.mobile-order-3{order:3}.mobile-order-4{order:4}
+  .search-grid{grid-template-columns:1fr}
+  .search-action{grid-column:auto}
+  .letter-picker{grid-template-columns:repeat(3,minmax(0,1fr))}
+}
+
+#flightNo, #routing { text-transform: uppercase; }
+
+
+.timer-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.timer-box{background:var(--panel-soft);border:1px solid var(--line);border-radius:14px;padding:10px}
+.timer-display{font-size:1.2rem;font-weight:800;color:var(--heading);margin:6px 0}
+.timer-actions{display:flex;gap:8px;flex-wrap:wrap}
+.timer-actions button{flex:1 1 calc(50% - 4px)}
+.flight-progress-panel{margin-top:10px;background:var(--panel-soft);border:1px solid var(--line);border-radius:16px;padding:12px}
+.flight-progress-head{display:flex;justify-content:space-between;gap:8px;align-items:flex-start;flex-wrap:wrap}
+.flight-progress-title{font-size:.95rem;font-weight:800;color:var(--heading);margin:0}
+.flight-progress-meta{font-size:.82rem;color:var(--muted);text-align:right}
+.flight-airports{display:grid;grid-template-columns:auto 1fr auto;gap:10px;align-items:end;margin-top:12px}
+.flight-airport{display:flex;flex-direction:column;gap:2px}
+.flight-airport.end{text-align:right}
+.flight-airport-code{font-size:1.15rem;font-weight:900;color:var(--heading);line-height:1}
+.flight-airport-city{font-size:.8rem;color:var(--muted);max-width:120px}
+.flight-track{position:relative;height:52px;display:flex;align-items:center}
+.flight-track-line{position:absolute;left:0;right:0;top:50%;transform:translateY(-50%);height:8px;border-radius:999px;background:linear-gradient(90deg,color-mix(in srgb,var(--blue) 12%, white),color-mix(in srgb,var(--blue) 4%, var(--panel)))}
+.flight-track-fill{height:100%;width:0%;border-radius:inherit;background:linear-gradient(90deg,var(--orange),var(--blue))}
+.flight-track-plane{position:absolute;top:50%;left:0;transform:translate(-50%,-50%);width:34px;height:34px;border-radius:999px;background:var(--panel);border:1px solid var(--line);display:flex;align-items:center;justify-content:center;box-shadow:var(--shadow);font-size:1rem;transition:left .4s ease}
+.flight-scale{display:flex;justify-content:space-between;gap:8px;margin-top:8px;font-size:.82rem;color:var(--muted)}
+.route-map-card{margin-top:10px;background:var(--panel-soft);border:1px solid var(--line);border-radius:16px;padding:12px}
+.route-map-head{display:flex;justify-content:space-between;gap:8px;align-items:flex-start;flex-wrap:wrap;margin-bottom:8px}
+.route-map-title{font-size:.95rem;font-weight:800;color:var(--heading);margin:0}
+.route-map-subtitle{font-size:.82rem;color:var(--muted)}
+.map-controls{display:flex;gap:6px;flex-wrap:wrap}
+.map-controls button{padding:8px 10px;min-width:42px}
+.route-map-wrap{border:1px solid var(--line);border-radius:14px;overflow:hidden;background:linear-gradient(180deg,#dbeafe,#eff6ff)}
+.route-map-svg{display:block;width:100%;height:auto;touch-action:none;cursor:grab}
+.route-map-svg.dragging{cursor:grabbing}
+.route-map-note{margin-top:8px;font-size:.8rem;color:var(--muted)}
+.map-grid-line{stroke:rgba(255,255,255,.55);stroke-width:1}
+.map-grid-major{stroke:rgba(255,255,255,.85);stroke-width:1.3}
+.map-route-line{fill:none;stroke:var(--orange);stroke-width:4;stroke-linecap:round;stroke-dasharray:8 8}
+.map-route-direct{fill:none;stroke:rgba(0,66,137,.22);stroke-width:2}
+.map-airport-dot{fill:var(--blue);stroke:#fff;stroke-width:2}
+.map-airport-label{font-size:18px;font-weight:800;fill:var(--heading)}
+.map-city-label{font-size:13px;fill:var(--muted)}
+.map-plane-badge{fill:#fff;stroke:var(--line);stroke-width:1.5}
+.map-status-label{font-size:16px;font-weight:700;fill:var(--heading)}
+.map-empty-label{font-size:18px;font-weight:700;fill:var(--muted)}
+@media (max-width:640px){
+  .timer-grid{grid-template-columns:1fr}
+  .flight-airports{grid-template-columns:1fr}
+  .flight-track{order:3}
+  .flight-airport.end{text-align:left}
+}
+
+</style>
+</head>
+<body>
+<div class="app">
+  <aside class="sidebar">
+    <h1>In-Flight Asistent</h1>
+
+    <div class="card">
+      <h2>Informace o letu</h2>
+      <div class="row">
+        <div style="flex:1 1 calc(50% - 4px)">
+          <label for="flightNo">Číslo letu</label>
+          <input id="flightNo" type="text" inputmode="text" />
+        </div>
+        <div style="flex:1 1 calc(50% - 4px)">
+          <label for="routing">Routing</label>
+          <input id="routing" type="text" inputmode="text" />
+        </div>
+      </div>
+      <div style="height:8px"></div>
+      <div class="row">
+        <div style="flex:1 1 calc(50% - 4px)">
+          <label for="flightTime">Doba letu</label>
+          <input id="flightTime" type="time" />
+        </div>
+        <div style="flex:1 1 calc(50% - 4px)">
+          <label for="paxCount">Počet cestujících</label>
+          <input id="paxCount" type="text" inputmode="numeric" pattern="[0-9+]*" />
+        </div>
+      </div>
+      <div style="height:8px"></div>
+      <div class="row">
+        <div style="flex:1 1 calc(50% - 4px)">
+          <label for="startTime">Čas startu</label>
+          <input id="startTime" type="time" />
+        </div>
+      </div>
+      <div style="height:10px"></div>
+      <div class="timer-grid">
+        <div class="timer-box">
+          <h2 style="margin:0 0 6px">Minutka</h2>
+          <div class="timer-display" id="countdownDisplay">--:--:--</div>
+          <div class="timer-actions">
+            <button id="countdownStartBtn" class="secondary">Spustit</button>
+            <button id="countdownResetBtn" class="ghost">Reset</button>
+          </div>
+        </div>
+        <div class="timer-box">
+          <h2 style="margin:0 0 6px">Stopky</h2>
+          <div class="timer-display" id="stopwatchDisplay">--:--:--</div>
+          <div class="timer-actions">
+            <button id="stopwatchStartBtn" class="secondary">Spustit</button>
+            <button id="stopwatchResetBtn" class="ghost">Reset</button>
+          </div>
+        </div>
+      </div>
+      <div class="flight-progress-panel">
+        <div class="flight-progress-head">
+          <div class="flight-progress-title">Stav letu</div>
+          <div class="flight-progress-meta" id="flightStatusMeta">Doplň routing, čas startu a dobu letu.</div>
+        </div>
+        <div class="flight-airports">
+          <div class="flight-airport">
+            <small>Odlet</small>
+            <div class="flight-airport-code" id="routeFromCode">---</div>
+            <div class="flight-airport-city" id="routeFromCity">letiště odletu</div>
+          </div>
+          <div class="flight-track">
+            <div class="flight-track-line">
+              <div class="flight-track-fill" id="flightTrackFill"></div>
+            </div>
+            <div class="flight-track-plane" id="flightTrackPlane" aria-hidden="true">✈</div>
+          </div>
+          <div class="flight-airport end">
+            <small>Přílet</small>
+            <div class="flight-airport-code" id="routeToCode">---</div>
+            <div class="flight-airport-city" id="routeToCity">letiště příletu</div>
+          </div>
+        </div>
+        <div class="flight-scale">
+          <span id="flightElapsedLabel">Uletěno 00:00</span>
+          <span id="flightRemainingLabel">Zbývá --:--</span>
+        </div>
+      </div>
+      <div class="route-map-card">
+        <div class="route-map-head">
+          <div>
+            <div class="route-map-title">Offline mapa routingu</div>
+            <div class="route-map-subtitle" id="routeMapStatus">Načítám databázi letišť…</div>
+          </div>
+          <div class="map-controls">
+            <button type="button" class="secondary" id="mapZoomOutBtn" aria-label="Oddálit mapu">−</button>
+            <button type="button" class="secondary" id="mapZoomInBtn" aria-label="Přiblížit mapu">+</button>
+            <button type="button" class="ghost" id="mapResetBtn">Reset</button>
+          </div>
+        </div>
+        <div class="route-map-wrap">
+          <svg id="routeMapSvg" class="route-map-svg" viewBox="0 0 1000 520" role="img" aria-label="Mapa trasy letu">
+            <defs>
+              <linearGradient id="mapGradient" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stop-color="#93c5fd"></stop>
+                <stop offset="100%" stop-color="#e0f2fe"></stop>
+              </linearGradient>
+            </defs>
+            <rect x="0" y="0" width="1000" height="520" fill="url(#mapGradient)"></rect>
+            <g id="mapViewport">
+              <g id="mapGrid"></g>
+              <path id="routeMapDirect" class="map-route-direct"></path>
+              <path id="routeMapPath" class="map-route-line"></path>
+              <circle id="routeFromDot" class="map-airport-dot" r="7"></circle>
+              <circle id="routeToDot" class="map-airport-dot" r="7"></circle>
+              <g id="routePlaneGroup">
+                <circle class="map-plane-badge" r="16"></circle>
+                <text text-anchor="middle" dominant-baseline="central" font-size="16">✈</text>
+              </g>
+              <text id="routeFromLabel" class="map-airport-label"></text>
+              <text id="routeFromCityLabel" class="map-city-label"></text>
+              <text id="routeToLabel" class="map-airport-label"></text>
+              <text id="routeToCityLabel" class="map-city-label"></text>
+              <text id="routeMapCenterLabel" class="map-status-label" x="500" y="262" text-anchor="middle"></text>
+            </g>
+          </svg>
+        </div>
+        <div class="route-map-note">Mapu můžeš táhnout prstem nebo myší a přibližovat tlačítky. Routing se čte z pole nahoře ve formátu `XXX–XXX`.</div>
+      </div>
+      <div style="height:8px"></div>
+      <label for="generalNote">Poznámka</label>
+      <textarea id="generalNote"></textarea>
+    </div>
+
+    <div class="card">
+      <div class="row">
+        <button id="rotateBtn" class="warn">Otočit mapu</button>
+        <button id="toggle6defBtn" class="secondary">Zobrazit 6DEF</button>
+      </div>
+      <div style="height:8px"></div>
+      <div class="row">
+        <button id="themeBtn" class="secondary">Tmavý režim</button>
+        <button id="legendToggleBtn" class="secondary">Legenda</button>
+      </div>
+      <div id="legendPanel" class="legend-panel">
+        <div style="height:10px"></div>
+        <h2>Legenda</h2>
+        <div class="legend-grid">
+          <div class="legend-item"><span class="swatch" style="background:var(--seat)"></span> běžné sedadlo</div>
+          <div class="legend-item"><span class="swatch" style="background:var(--exit)"></span> exit row</div>
+          <div class="legend-item"><span class="swatch" style="background:var(--seat-selected)"></span> vybrané sedadlo</div>
+          <div class="legend-item"><span class="swatch" style="background:var(--pill-fresh-bg)"></span> fresh produkty</div>
+          <div class="legend-item"><span class="swatch" style="background:var(--pill-pax-bg)"></span> special PAX</div>
+          <div class="legend-item"><span class="swatch" style="background:var(--pill-catering-bg)"></span> extra catering</div>
+          <div class="legend-item"><span class="seat-status-badge partial">✓</span> rozneseno částečně</div>
+          <div class="legend-item"><span class="seat-status-badge done">✓</span> rozneseno vše</div>
+          <div class="legend-item"><span class="swatch" style="background:var(--disabled)"></span> neaktivní 6DEF</div>
+        </div>
+
+        <div style="height:12px"></div>
+        <h2>Zkratky pro extra catering</h2>
+        <div class="code-help">
+          <table style="width:100%;border-collapse:collapse;font-size:.9rem;">
+            <tr>
+<td style="font-weight:700;padding:4px 6px;">SLML</td>
+<td style="padding:4px 6px;">Řízky vepřové velké</td>
+<td style="padding:4px 6px;">❄️</td>
+</tr>
+<tr>
+<td style="font-weight:700;padding:4px 6px;">SMML</td>
+<td style="padding:4px 6px;">Řízky vepřové malé</td>
+<td style="padding:4px 6px;">❄️</td>
+</tr>
+<tr>
+<td style="font-weight:700;padding:4px 6px;">SNML</td>
+<td style="padding:4px 6px;">Řízky kuřecí velké</td>
+<td style="padding:4px 6px;">❄️</td>
+</tr>
+<tr>
+<td style="font-weight:700;padding:4px 6px;">SOML</td>
+<td style="padding:4px 6px;">Řízky kuřecí malé</td>
+<td style="padding:4px 6px;">❄️</td>
+</tr>
+<tr>
+<td style="font-weight:700;padding:4px 6px;">SIML</td>
+<td style="padding:4px 6px;">Řízky vepřové teplé</td>
+<td style="padding:4px 6px;">🔥</td>
+</tr>
+<tr>
+<td style="font-weight:700;padding:4px 6px;">SJML</td>
+<td style="padding:4px 6px;">Řízky kuřecí teplé</td>
+<td style="padding:4px 6px;">🔥</td>
+</tr>
+<tr>
+<td style="font-weight:700;padding:4px 6px;">KCML</td>
+<td style="padding:4px 6px;">Quiche</td>
+<td style="padding:4px 6px;">🔥</td>
+</tr>
+<tr>
+<td style="font-weight:700;padding:4px 6px;">AEML</td>
+<td style="padding:4px 6px;">Palačinky</td>
+<td style="padding:4px 6px;">🔥</td>
+</tr>
+<tr>
+<td style="font-weight:700;padding:4px 6px;">KWML</td>
+<td style="padding:4px 6px;">Žemlovka</td>
+<td style="padding:4px 6px;">🔥</td>
+</tr>
+<tr>
+<td style="font-weight:700;padding:4px 6px;">SVML</td>
+<td style="padding:4px 6px;">Dětské jídlo (kuřecí)</td>
+<td style="padding:4px 6px;">🔥</td>
+</tr>
+<tr>
+<td style="font-weight:700;padding:4px 6px;">SXML</td>
+<td style="padding:4px 6px;">Dětské jídlo (bageta)</td>
+<td style="padding:4px 6px;">❄️</td>
+</tr>
+<tr>
+<td style="font-weight:700;padding:4px 6px;">CNML</td>
+<td style="padding:4px 6px;">Kanapky</td>
+<td style="padding:4px 6px;">❄️</td>
+</tr>
+<tr>
+<td style="font-weight:700;padding:4px 6px;">SQML</td>
+<td style="padding:4px 6px;">Ovocné špízy</td>
+<td style="padding:4px 6px;">❄️</td>
+</tr>
+<tr>
+<td style="font-weight:700;padding:4px 6px;">SRML</td>
+<td style="padding:4px 6px;">Ovocný talíř</td>
+<td style="padding:4px 6px;">❄️</td>
+</tr>
+<tr>
+<td style="font-weight:700;padding:4px 6px;">SKML</td>
+<td style="padding:4px 6px;">Mini deserty</td>
+<td style="padding:4px 6px;">❄️</td>
+</tr>
+<tr>
+<td style="font-weight:700;padding:4px 6px;">SUML</td>
+<td style="padding:4px 6px;">Chlebíčky</td>
+<td style="padding:4px 6px;">❄️</td>
+</tr>
+<tr>
+<td style="font-weight:700;padding:4px 6px;">SZML</td>
+<td style="padding:4px 6px;">Víno bílé</td>
+<td style="padding:4px 6px;">⚪</td>
+</tr>
+<tr>
+<td style="font-weight:700;padding:4px 6px;">WRML</td>
+<td style="padding:4px 6px;">Víno červené</td>
+<td style="padding:4px 6px;">🔴</td>
+</tr>
+<tr>
+<td style="font-weight:700;padding:4px 6px;">SYML</td>
+<td style="padding:4px 6px;">Sekt</td>
+<td style="padding:4px 6px;">🍾</td>
+</tr>
+<tr>
+<td style="font-weight:700;padding:4px 6px;">MEML</td>
+<td style="padding:4px 6px;">Moet</td>
+<td style="padding:4px 6px;">🍾</td>
+</tr>
+<tr>
+<td style="font-weight:700;padding:4px 6px;">BBML</td>
+<td style="padding:4px 6px;">Kojenecké</td>
+<td style="padding:4px 6px;">❄️</td>
+</tr>
+<tr>
+<td style="font-weight:700;padding:4px 6px;">KUML</td>
+<td style="padding:4px 6px;">Vepřové</td>
+<td style="padding:4px 6px;">❄️</td>
+</tr>
+<tr>
+<td style="font-weight:700;padding:4px 6px;">KXML</td>
+<td style="padding:4px 6px;">Hovězí</td>
+<td style="padding:4px 6px;">❄️</td>
+</tr>
+<tr>
+<td style="font-weight:700;padding:4px 6px;">KIML</td>
+<td style="padding:4px 6px;">Kozí sýr</td>
+<td style="padding:4px 6px;">❄️</td>
+</tr>
+<tr>
+<td style="font-weight:700;padding:4px 6px;">APML</td>
+<td style="padding:4px 6px;">Losos</td>
+<td style="padding:4px 6px;">❄️</td>
+</tr>
+<tr>
+<td style="font-weight:700;padding:4px 6px;">AJML</td>
+<td style="padding:4px 6px;">Vege</td>
+<td style="padding:4px 6px;">❄️</td>
+</tr>
+<tr>
+<td style="font-weight:700;padding:4px 6px;">AKML</td>
+<td style="padding:4px 6px;">Kachna</td>
+<td style="padding:4px 6px;">🔥</td>
+</tr>
+<tr>
+<td style="font-weight:700;padding:4px 6px;">ALML</td>
+<td style="padding:4px 6px;">Kuřecí</td>
+<td style="padding:4px 6px;">🔥</td>
+</tr>
+<tr>
+<td style="font-weight:700;padding:4px 6px;">AOML</td>
+<td style="padding:4px 6px;">Vege</td>
+<td style="padding:4px 6px;">🔥</td>
+</tr>
+<tr>
+<td style="font-weight:700;padding:4px 6px;">AQML</td>
+<td style="padding:4px 6px;">Hovězí</td>
+<td style="padding:4px 6px;">🔥</td>
+</tr>
+<tr>
+<td style="font-weight:700;padding:4px 6px;">ATML</td>
+<td style="padding:4px 6px;">Vepřové</td>
+<td style="padding:4px 6px;">🔥</td>
+</tr>
+          </table>
+        </div>
+      </div>
+      <div style="height:10px"></div>
+      <div class="row">
+        <button id="exportBtn">Exportovat data</button>
+        <button id="importBtn" class="secondary">Importovat data</button>
+      </div>
+      <div style="height:8px"></div>
+      <div class="row">
+        <button id="clearBtn" class="danger">Vymazat vše</button>
+      </div>
+      <input type="file" id="importFile" accept=".json" style="display:none" />
+    </div>
+
+    <div class="card">
+      <h2>Vyhledání sedadla</h2>
+      <div class="search-grid">
+        <input id="seatRowInput" type="tel" inputmode="numeric" pattern="[0-9]*" />
+        <div class="search-action"><button id="findBtn" class="ghost">Najít</button></div>
+      </div>
+      <div class="letter-picker" id="letterPicker">
+        <button type="button" class="secondary letter-btn" data-letter="A">A</button>
+        <button type="button" class="secondary letter-btn" data-letter="B">B</button>
+        <button type="button" class="secondary letter-btn" data-letter="C">C</button>
+        <button type="button" class="secondary letter-btn" data-letter="D">D</button>
+        <button type="button" class="secondary letter-btn" data-letter="E">E</button>
+        <button type="button" class="secondary letter-btn" data-letter="F">F</button>
+      </div>
+      <input id="seatLetterInput" type="hidden" />
+    </div>
+
+    <div class="card">
+      <h2>Souhrn</h2>
+      <div class="summary">
+        <div class="stat"><span class="muted">Special PAX</span><b id="countSpecialPax">0</b></div>
+        <div class="stat"><span class="muted">Extra catering</span><b id="countCatering">0</b></div>
+        <div class="stat"><span class="muted">Fresh produkty</span><b id="countFresh">0</b></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="row space-between" style="margin-bottom:8px">
+        <h2 style="margin:0">Special PAX přehled</h2>
+        <button id="specialPaxSummaryBtn" class="secondary small">Souhrn</button>
+      </div>
+      <div class="list" id="specialPaxList"></div>
+    </div>
+
+    <div class="card">
+      <div class="row space-between" style="margin-bottom:8px">
+        <h2 style="margin:0">Přehled cateringu</h2>
+        <button id="cateringSummaryBtn" class="secondary small">Souhrn</button>
+      </div>
+      <div class="list" id="cateringList"></div>
+    </div>
+
+    <div class="card">
+      <div class="row space-between" style="margin-bottom:8px">
+        <h2 style="margin:0">Fresh přehled</h2>
+        <button id="freshSummaryBtn" class="secondary small">Souhrn</button>
+      </div>
+      <div class="list" id="freshList"></div>
+    </div>
+  </aside>
+
+  <main class="main">
+    <div class="seatmap-wrap">
+      <div class="topbar">
+        <div>
+          <h2 style="font-size:1.25rem">Boeing 737-800</h2>
+        </div>
+        <div class="row">
+          <div class="muted">Směr mapy:</div>
+          <strong id="orientationLabel" style="color:var(--orange)">1 → 34 / ABC DEF</strong>
+        </div>
+      </div>
+
+      <section class="seatmap">
+        <div id="noseLabel" class="aircraft-head"></div>
+        <div class="grid-header" id="gridHeader"></div>
+        <div id="seatRows"></div>
+        <div id="tailLabel" class="aircraft-tail"></div>
+      </section>
+    </div>
+  
+      <div style="text-align:center;margin:16px 0 8px;font-size:0.8rem;color:var(--muted);">
+        Vytvořil Adam Tauš. Nejedná se o oficiální nástroj kontrolovaný společností.
+      </div>
+
+  </main>
+</div>
+
+<div class="modal" id="seatModal">
+  <div class="modal-box">
+    <div class="row space-between" style="margin-bottom:12px;">
+      <div>
+        <h2 id="modalTitle">Sedadlo</h2>
+      </div>
+      <button id="closeModal" class="secondary">Zavřít</button>
+    </div>
+
+    <div class="modal-grid">
+      <div class="section-block mobile-order-1">
+        <div class="section-title">Fresh produkty</div>
+        <div class="products" id="freshProducts"></div>
+        <div class="cart" id="freshCart"></div>
+      </div>
+
+      <div class="section-block mobile-order-2">
+        <div class="section-title">Special PAX</div>
+        <div class="check-grid" id="specialPaxChecks">
+          <label><input type="checkbox" value="WCHR" /> WCHR</label>
+          <label><input type="checkbox" value="WCHS" /> WCHS</label>
+          <label><input type="checkbox" value="WCHC" /> WCHC</label>
+          <label><input type="checkbox" value="INF" /> INF</label>
+          <label><input type="checkbox" value="UMNR" /> UMNR</label>
+          <label><input type="checkbox" value="DEAF" /> DEAF</label>
+          <label><input type="checkbox" value="BLND" /> BLND</label>
+          <label><input type="checkbox" value="EXST" /> EXST</label>
+          <label><input type="checkbox" value="MAAS" /> MAAS</label>
+          <label><input type="checkbox" value="PETC" /> PETC</label>
+        </div>
+        <div style="height:8px"></div>
+        <label for="customPax">Vlastní kód/poznámka k PAX</label>
+        <input id="customPax" type="text" />
+      </div>
+
+      <div class="section-block mobile-order-3">
+        <div class="section-title">Extra catering</div>
+        <div class="products" id="cateringProducts"></div>
+        <div class="cart" id="cateringCart"></div>
+        <div style="height:10px"></div>
+        <div class="product">
+          <div class="product-name">Vlastní extra catering</div>
+          <input id="customCateringName" class="custom-product-input" type="text" placeholder="KÓD / NÁZEV" />
+          <div style="height:8px"></div>
+          <div class="qty">
+            <div class="muted"><span id="customCateringQtyLabel">1</span> ks</div>
+            <div class="qty-controls">
+              <button type="button" class="qty-btn" data-action="minus" data-mode="custom-catering">−</button>
+              <div class="qty-number" id="customCateringQtyNumber">1</div>
+              <button type="button" class="qty-btn" data-action="plus" data-mode="custom-catering">+</button>
+            </div>
+          </div>
+          <div style="height:8px"></div>
+          <button type="button" id="addCustomCateringBtn" class="secondary">Vložit</button>
+        </div>
+      </div>
+
+      <div class="section-block mobile-order-4">
+        <div class="section-title">Poznámka</div>
+        <textarea id="seatNote"></textarea>
+      </div>
+    </div>
+
+    <div class="sticky-actions">
+      <div class="row space-between">
+        <button id="deleteSeatData" class="danger">Smazat data sedadla</button>
+        <button id="saveSeatData">Uložit</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal" id="summaryModal">
+  <div class="modal-box" style="width:min(760px,100%)">
+    <div class="row space-between" style="margin-bottom:12px;">
+      <h2 id="summaryTitle">Souhrn</h2>
+      <button id="closeSummaryModal" class="secondary">Zavřít</button>
+    </div>
+    <div class="summary-modal-list" id="summaryContent"></div>
+  </div>
+</div>
+
+<script>
+const ALL_ROWS = Array.from({length:34}, (_,i)=>i+1).filter(r => ![15,16].includes(r));
+const EXIT_ROWS = [17,18];
+const STORAGE_KEY = 'b738-seatmap-clean-v6';
+const FRESH_PRODUCTS = ['Panini Š', 'Panini V', 'Croque', 'Bloomer', 'Párek', 'Pasta', 'Pork', 'Bageta'];
+const CATERING_PRODUCTS = ['SLML', 'SMML', 'SNML', 'SOML', 'SYML', 'SZML'];
+const HIDDEN_SEATS = ['6D','6E','6F'];
+
+let state = { flightNo:'', routing:'', flightTime:'', paxCount:'', startTime:'', generalNote:'', reverse:false, dark:false, show6def:false, seats:{} };
+let currentSeat = null;
+let currentSummaryMode = null;
+let currentSummaryType = null;
+let modalFresh = {};
+let modalCatering = {};
+let modalCustomCateringQty = 1;
+let airportIndexPromise = null;
+let airportIndex = null;
+let currentRouteAirports = null;
+let currentMapTransform = { scale:1, x:0, y:0 };
+let baseMapTransform = { scale:1, x:0, y:0 };
+let mapDragState = null;
+
+function seatKey(row, letter){ return `${row}${letter}`; }
+function blankSeatData(){ return { extraCatering:{}, deliveredCatering:{}, customCatering:'', specialPax:[], customPax:'', fresh:{}, deliveredFresh:{}, note:'' }; }
+function clampDelivered(delivered, source){
+  const normalized = {};
+  Object.entries(source || {}).forEach(([name, qty]) => {
+    const max = Math.max(0, Number(qty) || 0);
+    const val = Math.min(max, Math.max(0, Number((delivered || {})[name]) || 0));
+    if(val > 0) normalized[name] = val;
+  });
+  return normalized;
+}
+function normalizeSeatData(data){
+  const base = {...blankSeatData(), ...(data || {})};
+  const legacyCustom = (base.customCatering || '').trim();
+  if(legacyCustom){
+    base.extraCatering = {...(base.extraCatering || {})};
+    base.extraCatering[legacyCustom] = Math.max(1, Number(base.extraCatering[legacyCustom] || 0));
+    base.customCatering = '';
+  }
+  base.fresh = Object.fromEntries(Object.entries(base.fresh || {}).filter(([_,v]) => Number(v) > 0));
+  base.extraCatering = Object.fromEntries(Object.entries(base.extraCatering || {}).filter(([_,v]) => Number(v) > 0));
+  base.deliveredFresh = clampDelivered(base.deliveredFresh, base.fresh);
+  base.deliveredCatering = clampDelivered(base.deliveredCatering, base.extraCatering);
+  return base;
+}
+function getSeatData(key){ return normalizeSeatData(state.seats[key]); }
+function hasCounts(obj){ return Object.values(obj || {}).some(v => Number(v) > 0); }
+function totalCounts(obj){ return Object.values(obj || {}).reduce((a,b) => a + (Number(b) || 0), 0); }
+function hasSeatData(data){
+  return hasCounts(data.extraCatering) || !!(data.customCatering || '').trim() || (data.specialPax || []).length > 0 || !!(data.customPax || '').trim() || hasCounts(data.fresh) || !!(data.note || '').trim();
+}
+function summarizeCounts(obj){
+  return Object.entries(obj || {}).filter(([k,v]) => Number(v) > 0).map(([k,v]) => `${v}× ${k}`).join(', ');
+}
+function deliveryStatusClass(delivered, total){
+  if(delivered <= 0) return '';
+  if(delivered >= total) return ' done';
+  return ' partial';
+}
+function buildDeliveryChips(type, seat, source, delivered){
+  const chips = [];
+  Object.entries(source || {}).forEach(([name, qty]) => {
+    const total = Number(qty) || 0;
+    const done = Math.min(total, Math.max(0, Number((delivered || {})[name]) || 0));
+    for(let i = 0; i < total; i++){
+      const finished = i < done;
+      chips.push(
+        `<button type="button" class="delivery-chip${finished ? deliveryStatusClass(done, total) : ''}" data-delivery-type="${type}" data-seat="${seat}" data-product="${escapeHtml(name)}" data-index="${i}">${escapeHtml(name)}${finished ? '<span class="tick">✓</span>' : ''}</button>`
+      );
+    }
+  });
+  return chips.join('');
+}
+function summarizeWithDelivery(obj, delivered){
+  return Object.entries(obj || {}).filter(([_,v]) => Number(v) > 0).map(([k,v]) => {
+    const total = Number(v) || 0;
+    const done = Math.min(total, Math.max(0, Number((delivered || {})[k]) || 0));
+    return done > 0 ? `${done}/${total} ${k}` : `${total}× ${k}`;
+  }).join(', ');
+}
+function getSeatDeliveryState(data){
+  const freshTotals = getDeliveryTotals(data.fresh, data.deliveredFresh);
+  const cateringTotals = getDeliveryTotals(data.extraCatering, data.deliveredCatering);
+  const total = freshTotals.total + cateringTotals.total;
+  const done = freshTotals.done + cateringTotals.done;
+  if(total <= 0 || done <= 0) return '';
+  return done >= total ? 'done' : 'partial';
+}
+function isAllDelivered(source, delivered){
+  const {total, done} = getDeliveryTotals(source, delivered);
+  return total > 0 && done >= total;
+}
+function buildDeliveredMap(source){
+  const out = {};
+  Object.entries(source || {}).forEach(([name, qty]) => {
+    const count = Number(qty) || 0;
+    if(count > 0) out[name] = count;
+  });
+  return out;
+}
+function getDeliveryTotals(source, delivered){
+  const total = totalCounts(source);
+  const done = totalCounts(clampDelivered(delivered, source));
+  return { total, done, allDone: total > 0 && done >= total };
+}
+function getSeatDeliveryMeta(data){
+  const freshTotals = getDeliveryTotals(data.fresh, data.deliveredFresh);
+  const cateringTotals = getDeliveryTotals(data.extraCatering, data.deliveredCatering);
+  const total = freshTotals.total + cateringTotals.total;
+  const done = freshTotals.done + cateringTotals.done;
+  if(total <= 0) return { total:0, done:0, state:'none' };
+  if(done <= 0) return { total, done, state:'none' };
+  return { total, done, state: done >= total ? 'done' : 'partial' };
+}
+function buildSeatStatusBadge(data){
+  const meta = getSeatDeliveryMeta(data);
+  if(meta.total <= 0 || meta.state === 'none') return '';
+  const title = meta.state === 'done' ? 'Vše odneseno' : `Odneseno ${meta.done}/${meta.total}`;
+  return `<span class="seat-status ${meta.state}" title="${escapeHtml(title)}">✓</span>`;
+}
+function renderDeliveryActions(type, seat, source, delivered, isSummary){
+  const totals = getDeliveryTotals(source, delivered);
+  if(totals.total <= 0) return '';
+  const label = totals.allDone ? 'Odznačit vše' : 'Označit vše odnesené';
+  return `<div class="delivery-actions"><button type="button" class="delivery-action${totals.allDone ? ' done' : ''}" data-delivery-toggle-all="1" data-delivery-type="${type}" data-seat="${seat}" data-summary-mode="${isSummary ? '1' : '0'}">${label}</button></div>`;
+}
+function renderGlobalDeliveryActions(type, aggregate, aggregateDelivered){
+  const totals = getDeliveryTotals(aggregate, aggregateDelivered);
+  if(totals.total <= 0) return '';
+  const label = totals.allDone ? 'Odznačit vše v souhrnu' : 'Označit vše v souhrnu';
+  return `<div class="delivery-actions"><button type="button" class="delivery-action${totals.allDone ? ' done' : ''}" data-delivery-toggle-global="1" data-delivery-type="${type}">${label}</button></div>`;
+}
+function buildDeliveryBlock(seat, data, type, isSummary){
+  const sourceKey = type === 'fresh' ? 'fresh' : 'extraCatering';
+  const deliveredKey = type === 'fresh' ? 'deliveredFresh' : 'deliveredCatering';
+  const source = data[sourceKey] || {};
+  const delivered = data[deliveredKey] || {};
+  const summary = [summarizeWithDelivery(source, delivered), type === 'catering' ? (data.customCatering || '').trim() : ''].filter(Boolean).join('; ');
+  const chips = buildDeliveryChips(type, seat, source, delivered);
+  const actions = renderDeliveryActions(type, seat, source, delivered, isSummary);
+  return `
+    <strong>${seat}</strong>
+    <div>${escapeHtml(summary)}</div>
+    ${data.note ? `<div class="muted">${escapeHtml(data.note)}</div>` : ''}
+    ${chips ? `<div class="delivery-chips">${chips}</div><div class="delivery-hint">Tapnutím označíš odnesené kusy.</div>` : ''}
+    ${actions}
+  `;
+}
+function shorten(text, max){ text = String(text || ''); return text.length > max ? text.slice(0, max - 1) + '…' : text; }
+function escapeHtml(str){ return String(str).replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;').replaceAll("'","&#039;"); }
+function isSeatDisabled(key){ return !state.show6def && HIDDEN_SEATS.includes(key); }
+function parseRoutingCodes(routing){
+  const normalized = String(routing || '').toUpperCase().replace(/\s+/g,'').replace(/-/g,'–');
+  const match = normalized.match(/^([A-Z]{3})–([A-Z]{3})$/);
+  if(!match) return { from:'', to:'' };
+  return { from: match[1], to: match[2] };
+}
+function formatMinutes(totalSeconds){
+  const safe = Math.max(0, Math.floor((Number(totalSeconds) || 0) / 60));
+  const h = Math.floor(safe / 60);
+  const m = safe % 60;
+  return `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}`;
+}
+function getFlightTimeline(){
+  const start = parseTimeToToday(state.startTime);
+  const durationSeconds = parseDuration(state.flightTime);
+  if(!start || durationSeconds === null || durationSeconds <= 0) return null;
+  const now = Date.now();
+  const startMs = start.getTime();
+  const endMs = startMs + durationSeconds * 1000;
+  const elapsed = Math.max(0, now - startMs);
+  const remaining = Math.max(0, endMs - now);
+  return {
+    progress: Math.max(0, Math.min(1, elapsed / (durationSeconds * 1000))),
+    elapsedSeconds: Math.floor(elapsed / 1000),
+    remainingSeconds: Math.floor(remaining / 1000),
+    hasStarted: now >= startMs,
+    finished: now >= endMs
+  };
+}
+function lonToX(lon){ return ((Number(lon) + 180) / 360) * 1000; }
+function latToY(lat){ return ((90 - Number(lat)) / 180) * 520; }
+function describeAirport(airport, fallbackCode){
+  if(!airport) return fallbackCode ? `Letiště ${fallbackCode}` : 'letiště';
+  return shorten(airport.municipality || airport.name || fallbackCode, 22);
+}
+function parseCsvRow(line){
+  const out = [];
+  let current = '';
+  let inQuotes = false;
+  for(let i = 0; i < line.length; i++){
+    const ch = line[i];
+    if(ch === '"'){
+      if(inQuotes && line[i + 1] === '"'){
+        current += '"';
+        i++;
+      } else {
+        inQuotes = !inQuotes;
+      }
+    } else if(ch === ',' && !inQuotes){
+      out.push(current);
+      current = '';
+    } else {
+      current += ch;
+    }
+  }
+  out.push(current);
+  return out;
+}
+async function loadAirportIndex(){
+  if(airportIndex) return airportIndex;
+  if(airportIndexPromise) return airportIndexPromise;
+
+  airportIndexPromise = fetch('./airports.csv')
+    .then(response => {
+      if(!response.ok) throw new Error('Nepodařilo se načíst airports.csv');
+      return response.text();
+    })
+    .then(text => {
+      const rows = text.split(/\r?\n/).filter(Boolean);
+      if(!rows.length) return {};
+      const header = parseCsvRow(rows[0]);
+      const idx = {
+        iata: header.indexOf('iata_code'),
+        lat: header.indexOf('latitude_deg'),
+        lon: header.indexOf('longitude_deg'),
+        name: header.indexOf('name'),
+        municipality: header.indexOf('municipality'),
+        scheduled: header.indexOf('scheduled_service')
+      };
+      const result = {};
+      for(let i = 1; i < rows.length; i++){
+        const cols = parseCsvRow(rows[i]);
+        const code = (cols[idx.iata] || '').trim().toUpperCase();
+        if(!/^[A-Z]{3}$/.test(code)) continue;
+        const lat = Number(cols[idx.lat]);
+        const lon = Number(cols[idx.lon]);
+        if(!Number.isFinite(lat) || !Number.isFinite(lon)) continue;
+        const record = {
+          code,
+          lat,
+          lon,
+          name: (cols[idx.name] || '').trim(),
+          municipality: (cols[idx.municipality] || '').trim(),
+          scheduled: ((cols[idx.scheduled] || '').trim().toLowerCase() === 'yes')
+        };
+        if(!result[code] || (record.scheduled && !result[code].scheduled)){
+          result[code] = record;
+        }
+      }
+      airportIndex = result;
+      return result;
+    })
+    .catch(err => {
+      airportIndexPromise = null;
+      throw err;
+    });
+
+  return airportIndexPromise;
+}
+function buildArcPath(fromPoint, toPoint){
+  const mx = (fromPoint.x + toPoint.x) / 2;
+  const my = (fromPoint.y + toPoint.y) / 2;
+  const dx = toPoint.x - fromPoint.x;
+  const dy = toPoint.y - fromPoint.y;
+  const distance = Math.hypot(dx, dy);
+  const lift = Math.max(35, Math.min(120, distance * 0.18));
+  const nx = distance ? (-dy / distance) : 0;
+  const ny = distance ? (dx / distance) : -1;
+  const cx = mx + nx * lift;
+  const cy = my + ny * lift;
+  return `M ${fromPoint.x} ${fromPoint.y} Q ${cx} ${cy} ${toPoint.x} ${toPoint.y}`;
+}
+function getQuadraticPoint(fromPoint, toPoint, progress){
+  const mx = (fromPoint.x + toPoint.x) / 2;
+  const my = (fromPoint.y + toPoint.y) / 2;
+  const dx = toPoint.x - fromPoint.x;
+  const dy = toPoint.y - fromPoint.y;
+  const distance = Math.hypot(dx, dy);
+  const lift = Math.max(35, Math.min(120, distance * 0.18));
+  const nx = distance ? (-dy / distance) : 0;
+  const ny = distance ? (dx / distance) : -1;
+  const cx = mx + nx * lift;
+  const cy = my + ny * lift;
+  const t = Math.max(0, Math.min(1, progress));
+  const mt = 1 - t;
+  return {
+    x: (mt * mt * fromPoint.x) + (2 * mt * t * cx) + (t * t * toPoint.x),
+    y: (mt * mt * fromPoint.y) + (2 * mt * t * cy) + (t * t * toPoint.y)
+  };
+}
+function setMapTransform(transform){
+  currentMapTransform = {
+    scale: Math.max(1, Math.min(8, transform.scale)),
+    x: transform.x,
+    y: transform.y
+  };
+  document.getElementById('mapViewport').setAttribute('transform', `translate(${currentMapTransform.x} ${currentMapTransform.y}) scale(${currentMapTransform.scale})`);
+}
+function resetMapView(){ setMapTransform(baseMapTransform); }
+function zoomMap(factor){
+  const nextScale = Math.max(1, Math.min(8, currentMapTransform.scale * factor));
+  const centerX = 500;
+  const centerY = 260;
+  const relativeX = (centerX - currentMapTransform.x) / currentMapTransform.scale;
+  const relativeY = (centerY - currentMapTransform.y) / currentMapTransform.scale;
+  setMapTransform({
+    scale: nextScale,
+    x: centerX - (relativeX * nextScale),
+    y: centerY - (relativeY * nextScale)
+  });
+}
+function fitMapToRoute(fromAirport, toAirport){
+  const x1 = lonToX(fromAirport.lon);
+  const y1 = latToY(fromAirport.lat);
+  const x2 = lonToX(toAirport.lon);
+  const y2 = latToY(toAirport.lat);
+  const minX = Math.min(x1, x2);
+  const minY = Math.min(y1, y2);
+  const width = Math.max(120, Math.abs(x1 - x2));
+  const height = Math.max(90, Math.abs(y1 - y2));
+  const scale = Math.max(1.15, Math.min(4.8, Math.min(860 / (width + 80), 360 / (height + 80))));
+  const centerX = minX + (width / 2);
+  const centerY = minY + (height / 2);
+  baseMapTransform = {
+    scale,
+    x: 500 - (centerX * scale),
+    y: 260 - (centerY * scale)
+  };
+  resetMapView();
+}
+function renderMapGrid(){
+  const grid = document.getElementById('mapGrid');
+  if(grid.dataset.ready === '1') return;
+  const parts = [];
+  for(let lon = -180; lon <= 180; lon += 30){
+    const x = lonToX(lon);
+    parts.push(`<line x1="${x}" y1="0" x2="${x}" y2="520" class="${lon % 90 === 0 ? 'map-grid-major' : 'map-grid-line'}"></line>`);
+  }
+  for(let lat = -60; lat <= 60; lat += 30){
+    const y = latToY(lat);
+    parts.push(`<line x1="0" y1="${y}" x2="1000" y2="${y}" class="${lat === 0 ? 'map-grid-major' : 'map-grid-line'}"></line>`);
+  }
+  grid.innerHTML = parts.join('');
+  grid.dataset.ready = '1';
+}
+
+function lettersOrder(){ return state.reverse ? ['F','E','D','C','B','A'] : ['A','B','C','D','E','F']; }
+function leftLetters(){ return state.reverse ? ['F','E','D'] : ['A','B','C']; }
+function rightLetters(){ return state.reverse ? ['C','B','A'] : ['D','E','F']; }
+
+function renderHeader(){
+  const h = document.getElementById('gridHeader');
+  const order = lettersOrder();
+  h.innerHTML = `<div></div><div>${order[0]}</div><div>${order[1]}</div><div>${order[2]}</div><div></div><div>${order[3]}</div><div>${order[4]}</div><div>${order[5]}</div>`;
+}
+
+function updateRotateBtn(){
+  const btn = document.getElementById('rotateBtn');
+  if(!btn) return;
+  btn.textContent = state.reverse ? 'Otočit mapu ↓' : 'Otočit mapu ↑';
+}
+
+function renderSeatMap(){
+  const container = document.getElementById('seatRows');
+  container.innerHTML = '';
+  const rows = state.reverse ? [...ALL_ROWS].reverse() : ALL_ROWS;
+  renderHeader();
+
+  document.getElementById('orientationLabel').textContent = state.reverse ? '34 → 1 / FED CBA' : '1 → 34 / ABC DEF';
+  document.getElementById('noseLabel').textContent = '';
+  document.getElementById('tailLabel').textContent = '';
+  document.getElementById('toggle6defBtn').textContent = state.show6def ? 'Skrýt 6DEF' : 'Zobrazit 6DEF';
+
+  for(const row of rows){
+    const rowEl = document.createElement('div');
+    rowEl.className = 'seat-row' + (EXIT_ROWS.includes(row) ? ' exit-row' : '');
+
+    const rowNum = document.createElement('div');
+    rowNum.className = 'rownum';
+    rowNum.textContent = row;
+    rowEl.appendChild(rowNum);
+
+    leftLetters().forEach(letter => rowEl.appendChild(makeSeat(row, letter)));
+    const aisle = document.createElement('div');
+    aisle.className = 'aisle';
+    aisle.textContent = '✈';
+    rowEl.appendChild(aisle);
+    rightLetters().forEach(letter => rowEl.appendChild(makeSeat(row, letter)));
+    container.appendChild(rowEl);
+  }
+}
+
+function makeSeat(row, letter){
+  const key = seatKey(row, letter);
+  const data = getSeatData(key);
+  const disabled = isSeatDisabled(key);
+  const seat = document.createElement('button');
+  seat.type = 'button';
+  seat.className = 'seat' + (EXIT_ROWS.includes(row) ? ' exit' : '') + (hasSeatData(data) ? ' has-data' : '') + (currentSeat === key ? ' selected' : '') + (disabled ? ' disabled' : '');
+  seat.dataset.seat = key;
+  seat.setAttribute('aria-label', `Sedadlo ${key}`);
+  if(disabled) seat.disabled = true;
+
+  const seatStatusBadge = buildSeatStatusBadge(data);
+  let html = `<div class="seat-top"><div class="seat-id">${key}</div>${seatStatusBadge}</div><div class="seat-meta">`;
+  const cateringSummary = summarizeCounts(data.extraCatering);
+  if(cateringSummary || (data.customCatering || '').trim()){
+    const txt = [cateringSummary, (data.customCatering || '').trim()].filter(Boolean).join('; ');
+    html += `<span class="pill pill-catering">${escapeHtml(shorten(txt, 14))}</span>`;
+  }
+  if((data.specialPax || []).length || (data.customPax || '').trim()){
+    const txt = [...(data.specialPax || []), ...(((data.customPax || '').trim()) ? [(data.customPax || '').trim()] : [])].join(', ');
+    html += `<span class="pill pill-pax">${escapeHtml(shorten(txt, 14))}</span>`;
+  }
+  const freshSummary = summarizeCounts(data.fresh);
+  if(freshSummary){
+    html += `<span class="pill pill-fresh">${escapeHtml(shorten(freshSummary, 14))}</span>`;
+  } else if((data.note || '').trim()){
+    html += `<span class="pill pill-note">${escapeHtml(shorten(data.note, 12))}</span>`;
+  }
+  html += `</div>`;
+  seat.innerHTML = html;
+  if(!disabled) seat.addEventListener('click', () => openSeatModal(key));
+  return seat;
+}
+
+function renderQtyProducts(containerId, products, dataObj, mode){
+  const box = document.getElementById(containerId);
+  box.innerHTML = '';
+  products.forEach(name => {
+    const qty = Number(dataObj[name] || 0);
+    const div = document.createElement('div');
+    div.className = 'product';
+    div.innerHTML = `
+      <div class="product-name">${name}</div>
+      <div class="qty">
+        <div class="muted">${qty} ks</div>
+        <div class="qty-controls">
+          <button type="button" class="qty-btn" data-action="minus" data-mode="${mode}" data-name="${name}">−</button>
+          <div class="qty-number">${qty}</div>
+          <button type="button" class="qty-btn" data-action="plus" data-mode="${mode}" data-name="${name}">+</button>
+        </div>
+      </div>
+    `;
+    box.appendChild(div);
+  });
+  box.querySelectorAll('.qty-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const action = btn.dataset.action;
+      if(btn.dataset.mode === 'custom-catering'){
+        modalCustomCateringQty = Math.max(1, modalCustomCateringQty + (action === 'plus' ? 1 : -1));
+        refreshModalProducts();
+        return;
+      }
+      const name = btn.dataset.name;
+      const target = btn.dataset.mode === 'fresh' ? modalFresh : modalCatering;
+      target[name] = Number(target[name] || 0) + (action === 'plus' ? 1 : -1);
+      if(target[name] <= 0) delete target[name];
+      refreshModalProducts();
+    });
+  });
+}
+
+function refreshCart(targetId, dataObj, emptyText){
+  const box = document.getElementById(targetId);
+  const parts = Object.entries(dataObj).filter(([k,v]) => Number(v) > 0).map(([k,v]) => `${v}× ${k}`);
+  box.innerHTML = parts.length ? `<strong>${parts.join(', ')}</strong>` : `<span class="muted">${emptyText}</span>`;
+}
+
+function refreshModalProducts(){
+  renderQtyProducts('freshProducts', FRESH_PRODUCTS, modalFresh, 'fresh');
+  renderQtyProducts('cateringProducts', CATERING_PRODUCTS, modalCatering, 'catering');
+  const qtyLabel = document.getElementById('customCateringQtyLabel');
+  const qtyNumber = document.getElementById('customCateringQtyNumber');
+  if(qtyLabel) qtyLabel.textContent = String(modalCustomCateringQty);
+  if(qtyNumber) qtyNumber.textContent = String(modalCustomCateringQty);
+  refreshCart('freshCart', modalFresh, 'Zatím bez fresh produktů.');
+  refreshCart('cateringCart', modalCatering, 'Zatím bez extra cateringu.');
+}
+function addCustomCatering(){
+  const input = document.getElementById('customCateringName');
+  const name = (input.value || '').trim().toUpperCase();
+  if(!name){
+    alert('Zadej vlastní kód nebo název.');
+    return;
+  }
+  modalCatering[name] = Number(modalCatering[name] || 0) + Math.max(1, Number(modalCustomCateringQty) || 1);
+  input.value = '';
+  modalCustomCateringQty = 1;
+  refreshModalProducts();
+}
+
+function openSeatModal(key){
+  currentSeat = key;
+  const data = getSeatData(key);
+  modalFresh = {...(data.fresh || {})};
+  modalCatering = {...(data.extraCatering || {})};
+  const legacyCustom = (data.customCatering || '').trim();
+  if(legacyCustom){
+    modalCatering[legacyCustom] = Number(modalCatering[legacyCustom] || 0) + 1;
+  }
+  modalCustomCateringQty = 1;
+  document.getElementById('modalTitle').textContent = `Sedadlo ${key}`;
+  document.getElementById('customCateringName').value = '';
+  document.getElementById('customPax').value = data.customPax || '';
+  document.getElementById('seatNote').value = data.note || '';
+  document.querySelectorAll('#specialPaxChecks input[type="checkbox"]').forEach(cb => cb.checked = (data.specialPax || []).includes(cb.value));
+  refreshModalProducts();
+  document.getElementById('seatModal').classList.add('open');
+  renderSeatMap();
+}
+
+function closeSeatModal(){
+  currentSeat = null;
+  document.getElementById('seatModal').classList.remove('open');
+  renderSeatMap();
+}
+
+function saveSeatData(){
+  if(!currentSeat) return;
+  const selectedPax = [...document.querySelectorAll('#specialPaxChecks input:checked')].map(cb => cb.value);
+  const previous = getSeatData(currentSeat);
+  const data = normalizeSeatData({
+    extraCatering: {...modalCatering},
+    deliveredCatering: previous.deliveredCatering || {},
+    customCatering: '',
+    specialPax: selectedPax,
+    customPax: document.getElementById('customPax').value.trim(),
+    fresh: {...modalFresh},
+    deliveredFresh: previous.deliveredFresh || {},
+    note: document.getElementById('seatNote').value.trim()
+  });
+  if(hasSeatData(data)) state.seats[currentSeat] = data;
+  else delete state.seats[currentSeat];
+  persist();
+  closeSeatModal();
+  renderAll();
+}
+
+function deleteSeatData(){
+  if(!currentSeat) return;
+  delete state.seats[currentSeat];
+  persist();
+  closeSeatModal();
+  renderAll();
+}
+
+
+
+
+function applyTheme(){
+  document.body.classList.toggle('dark', !!state.dark);
+  const themeBtn = document.getElementById('themeBtn');
+  if(themeBtn){
+    themeBtn.textContent = state.dark ? 'Světlý režim' : 'Tmavý režim';
+  }
+}
+function updateLegendPanel(){
+  const panel = document.getElementById('legendPanel');
+  const btn = document.getElementById('legendToggleBtn');
+  if(panel) panel.classList.toggle('open', !!state.legendOpen);
+  if(btn) btn.textContent = state.legendOpen ? 'Skrýt legendu' : 'Legenda';
+}
+
+function persist(){
+  state.flightNo = document.getElementById('flightNo').value;
+  state.routing = document.getElementById('routing').value;
+  state.flightTime = document.getElementById('flightTime').value;
+  state.paxCount = document.getElementById('paxCount').value;
+  state.startTime = document.getElementById('startTime').value;
+  state.generalNote = document.getElementById('generalNote').value;
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+}
+
+function loadState(){
+  try{
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if(raw){
+      const parsed = JSON.parse(raw);
+      state = { flightNo: parsed.flightNo || '', routing: parsed.routing || '', flightTime: parsed.flightTime || '', paxCount: parsed.paxCount || '', startTime: parsed.startTime || '', generalNote: parsed.generalNote || '', reverse: !!parsed.reverse, dark: !!parsed.dark, show6def: !!parsed.show6def, legendOpen: !!parsed.legendOpen, seats: Object.fromEntries(Object.entries(parsed.seats || {}).map(([key, val]) => [key, normalizeSeatData(val)])) };
+    }
+  }catch(e){}
+  document.getElementById('flightNo').value = state.flightNo;
+  document.getElementById('routing').value = state.routing || '';
+  document.getElementById('flightTime').value = state.flightTime || '';
+  document.getElementById('paxCount').value = state.paxCount || '';
+  document.getElementById('startTime').value = state.startTime || '';
+  document.getElementById('generalNote').value = state.generalNote;
+  applyTheme();
+  updateLetterPicker();
+}
+
+function updateSummary(){
+  const entries = Object.values(state.seats);
+  document.getElementById('countSpecialPax').textContent = entries.reduce((sum, d) => {
+    const custom = (d.customPax || '').trim() ? 1 : 0;
+    return sum + (d.specialPax || []).length + custom;
+  }, 0);
+  document.getElementById('countCatering').textContent = entries.reduce((sum, d) => sum + totalCounts(normalizeSeatData(d).extraCatering), 0);
+  document.getElementById('countFresh').textContent = entries.reduce((sum, d) => sum + totalCounts(d.fresh), 0);
+}
+
+function seatSort(a,b){
+  const ra = parseInt(a,10), rb = parseInt(b,10);
+  if(ra !== rb) return ra - rb;
+  return a.localeCompare(b);
+}
+
+function renderSpecialPaxList(){
+  const box = document.getElementById('specialPaxList');
+  box.innerHTML = '';
+  const items = Object.entries(state.seats)
+    .map(([seat,d]) => {
+      const pax = [...(d.specialPax || []), ...(((d.customPax || '').trim()) ? [(d.customPax || '').trim()] : [])];
+      return { seat, pax, note: d.note || '' };
+    })
+    .filter(x => x.pax.length)
+    .sort((a,b) => seatSort(a.seat,b.seat));
+
+  if(!items.length){ box.innerHTML = '<div class="muted">Zatím nic.</div>'; return; }
+  items.forEach(item => {
+    const div = document.createElement('div');
+    div.className = 'list-item';
+    div.innerHTML = `<strong>${item.seat}</strong><div>${escapeHtml(item.pax.join(', '))}</div>${item.note ? `<div class="muted">${escapeHtml(item.note)}</div>` : ''}`;
+    box.appendChild(div);
+  });
+}
+
+function renderFreshList(){
+  const box = document.getElementById('freshList');
+  box.innerHTML = '';
+  const items = Object.entries(state.seats)
+    .map(([seat,d]) => ({ seat, data: normalizeSeatData(d) }))
+    .filter(x => hasCounts(x.data.fresh))
+    .sort((a,b) => seatSort(a.seat,b.seat));
+
+  if(!items.length){ box.innerHTML = '<div class="muted">Zatím nic.</div>'; return; }
+  items.forEach(item => {
+    const summary = summarizeWithDelivery(item.data.fresh, item.data.deliveredFresh);
+    const chips = buildDeliveryChips('fresh', item.seat, item.data.fresh, item.data.deliveredFresh);
+    const allDone = isAllDelivered(item.data.fresh, item.data.deliveredFresh);
+    const div = document.createElement('div');
+    div.className = 'list-item';
+    div.innerHTML = `<div class="list-item-head"><strong>${item.seat}</strong><div class="delivery-actions"><button type="button" class="secondary delivery-bulk-btn" data-bulk-delivery="fresh" data-seat="${item.seat}">${allDone ? 'Odznačit vše' : 'Označit vše'}</button></div></div><div>${escapeHtml(summary)}</div>${item.data.note ? `<div class="muted">${escapeHtml(item.data.note)}</div>` : ''}<div class="delivery-chips">${chips}</div>`;
+    box.appendChild(div);
+  });
+}
+
+function renderCateringList(){
+  const box = document.getElementById('cateringList');
+  if(!box) return;
+  box.innerHTML = '';
+  const items = Object.entries(state.seats)
+    .map(([seat,d]) => ({ seat, data: normalizeSeatData(d) }))
+    .filter(x => hasCounts(x.data.extraCatering))
+    .sort((a,b) => seatSort(a.seat,b.seat));
+
+  if(!items.length){ box.innerHTML = '<div class="muted">Zatím nic.</div>'; return; }
+  items.forEach(item => {
+    const summary = summarizeWithDelivery(item.data.extraCatering, item.data.deliveredCatering);
+    const chips = buildDeliveryChips('catering', item.seat, item.data.extraCatering, item.data.deliveredCatering);
+    const allDone = isAllDelivered(item.data.extraCatering, item.data.deliveredCatering);
+    const div = document.createElement('div');
+    div.className = 'list-item';
+    div.innerHTML = `<div class="list-item-head"><strong>${item.seat}</strong>${chips ? `<div class="delivery-actions"><button type="button" class="secondary delivery-bulk-btn" data-bulk-delivery="catering" data-seat="${item.seat}">${allDone ? 'Odznačit vše' : 'Označit vše'}</button></div>` : ''}</div><div>${escapeHtml(summary)}</div>${item.data.note ? `<div class="muted">${escapeHtml(item.data.note)}</div>` : ''}${chips ? `<div class="delivery-chips">${chips}</div>` : ''}`;
+    box.appendChild(div);
+  });
+}
+
+function openSpecialPaxSummaryModal(){
+  const title = document.getElementById('summaryTitle');
+  const content = document.getElementById('summaryContent');
+  content.innerHTML = '';
+  currentSummaryMode = 'specialPax';
+  currentSummaryType = 'specialPax';
+  title.textContent = 'Souhrn special PAX';
+
+  const aggregate = {};
+  const rows = Object.entries(state.seats)
+    .map(([seat, d]) => {
+      const pax = [...(d.specialPax || []), ...(((d.customPax || '').trim()) ? [(d.customPax || '').trim()] : [])];
+      pax.forEach(code => { aggregate[code] = (aggregate[code] || 0) + 1; });
+      return { seat, pax, note: d.note || '' };
+    })
+    .filter(x => x.pax.length)
+    .sort((a,b) => seatSort(a.seat,b.seat));
+
+  const totalBox = document.createElement('div');
+  totalBox.className = 'summary-row';
+  const totalParts = Object.entries(aggregate).sort().map(([k,v]) => `${v}× ${k}`);
+  totalBox.innerHTML = `<strong>Celkem:</strong><div style="margin-top:6px">${totalParts.length ? escapeHtml(totalParts.join(', ')) : 'Zatím nic.'}</div>`;
+  content.appendChild(totalBox);
+
+  rows.forEach(item => {
+    const div = document.createElement('div');
+    div.className = 'summary-row';
+    div.innerHTML = `<strong>${item.seat}</strong><div style="margin-top:6px">${escapeHtml(item.pax.join(', '))}</div>${item.note ? `<div class="muted" style="margin-top:6px">${escapeHtml(item.note)}</div>` : ''}`;
+    content.appendChild(div);
+  });
+
+  document.getElementById('summaryModal').classList.add('open');
+}
+
+function openSummaryModal(type){
+  const title = document.getElementById('summaryTitle');
+  const content = document.getElementById('summaryContent');
+  content.innerHTML = '';
+
+  let aggregate = {};
+  let aggregateDelivered = {};
+  let rows = [];
+
+  Object.entries(state.seats).forEach(([seat, rawData]) => {
+    const data = normalizeSeatData(rawData);
+    const source = type === 'fresh' ? (data.fresh || {}) : (data.extraCatering || {});
+    const delivered = type === 'fresh' ? (data.deliveredFresh || {}) : (data.deliveredCatering || {});
+    if(hasCounts(source)){
+      rows.push({
+        seat,
+        data,
+        source,
+        delivered,
+        note: data.note || '',
+        summary: summarizeWithDelivery(source, delivered)
+      });
+      Object.entries(source).forEach(([name, qty]) => { aggregate[name] = (aggregate[name] || 0) + Number(qty || 0); });
+      Object.entries(clampDelivered(delivered, source)).forEach(([name, qty]) => { aggregateDelivered[name] = (aggregateDelivered[name] || 0) + Number(qty || 0); });
+    }
+  });
+
+  currentSummaryMode = type;
+  currentSummaryType = type;
+  title.textContent = type === 'fresh' ? 'Souhrn fresh produktů' : 'Souhrn extra cateringu';
+
+  const totalBox = document.createElement('div');
+  totalBox.className = 'summary-row';
+  const totalSummary = summarizeWithDelivery(aggregate, aggregateDelivered);
+  totalBox.innerHTML = `<div class="summary-row-head"><strong>Celkem:</strong></div><div>${totalSummary ? escapeHtml(totalSummary) : 'Zatím nic.'}</div>`;
+  content.appendChild(totalBox);
+
+  rows.sort((a,b) => seatSort(a.seat,b.seat));
+  rows.forEach(item => {
+    const chips = buildDeliveryChips(type, item.seat, item.source, item.delivered);
+    const allDone = isAllDelivered(item.source, item.delivered);
+    const div = document.createElement('div');
+    div.className = 'summary-row';
+    div.innerHTML = `<div class="summary-row-head"><strong>${item.seat}</strong>${chips ? `<div class="delivery-actions"><button type="button" class="secondary delivery-bulk-btn" data-bulk-delivery="${type}" data-seat="${item.seat}">${allDone ? 'Odznačit vše' : 'Označit vše'}</button></div>` : ''}</div><div>${escapeHtml(item.summary)}</div>${item.note ? `<div class="muted" style="margin-top:6px">${escapeHtml(item.note)}</div>` : ''}${chips ? `<div class="delivery-chips">${chips}</div>` : ''}`;
+    content.appendChild(div);
+  });
+
+  document.getElementById('summaryModal').classList.add('open');
+}
+
+function toggleDeliveredItem(seat, type, product, index){
+  if(seat === '__aggregate__') return;
+  const data = getSeatData(seat);
+  const sourceKey = type === 'fresh' ? 'fresh' : 'extraCatering';
+  const deliveredKey = type === 'fresh' ? 'deliveredFresh' : 'deliveredCatering';
+  const total = Number((data[sourceKey] || {})[product] || 0);
+  if(total <= 0) return;
+  const current = Math.min(total, Math.max(0, Number((data[deliveredKey] || {})[product]) || 0));
+  const next = index < current ? index : index + 1;
+  if(next <= 0) delete data[deliveredKey][product];
+  else data[deliveredKey][product] = Math.min(total, next);
+  state.seats[seat] = normalizeSeatData(data);
+  persist();
+  renderAll();
+}
+function toggleDeliveredAllForSeat(seat, type){
+  const data = getSeatData(seat);
+  const sourceKey = type === 'fresh' ? 'fresh' : 'extraCatering';
+  const deliveredKey = type === 'fresh' ? 'deliveredFresh' : 'deliveredCatering';
+  const source = data[sourceKey] || {};
+  if(!hasCounts(source)) return;
+  data[deliveredKey] = isAllDelivered(source, data[deliveredKey]) ? {} : buildDeliveredMap(source);
+  state.seats[seat] = normalizeSeatData(data);
+  persist();
+  renderAll();
+}
+function toggleDeliveredAll(seat, type){
+  if(seat === '__aggregate__') return;
+  const data = getSeatData(seat);
+  const sourceKey = type === 'fresh' ? 'fresh' : 'extraCatering';
+  const deliveredKey = type === 'fresh' ? 'deliveredFresh' : 'deliveredCatering';
+  const source = data[sourceKey] || {};
+  const totals = getDeliveryTotals(source, data[deliveredKey] || {});
+  if(totals.total <= 0) return;
+  if(totals.allDone){
+    data[deliveredKey] = {};
+  } else {
+    data[deliveredKey] = Object.fromEntries(
+      Object.entries(source).filter(([_, qty]) => Number(qty) > 0).map(([name, qty]) => [name, Number(qty)])
+    );
+  }
+  state.seats[seat] = normalizeSeatData(data);
+  persist();
+  renderAll();
+}
+function toggleDeliveredGlobal(type){
+  const sourceKey = type === 'fresh' ? 'fresh' : 'extraCatering';
+  const deliveredKey = type === 'fresh' ? 'deliveredFresh' : 'deliveredCatering';
+  const aggregate = {};
+  const aggregateDelivered = {};
+  Object.values(state.seats).forEach(rawData => {
+    const data = normalizeSeatData(rawData);
+    Object.entries(data[sourceKey] || {}).forEach(([name, qty]) => {
+      aggregate[name] = (aggregate[name] || 0) + Number(qty || 0);
+    });
+    Object.entries(clampDelivered(data[deliveredKey] || {}, data[sourceKey] || {})).forEach(([name, qty]) => {
+      aggregateDelivered[name] = (aggregateDelivered[name] || 0) + Number(qty || 0);
+    });
+  });
+  const totals = getDeliveryTotals(aggregate, aggregateDelivered);
+  if(totals.total <= 0) return;
+  const markAll = !totals.allDone;
+  Object.entries(state.seats).forEach(([seat, rawData]) => {
+    const data = normalizeSeatData(rawData);
+    const source = data[sourceKey] || {};
+    if(totalCounts(source) <= 0) return;
+    data[deliveredKey] = markAll
+      ? Object.fromEntries(Object.entries(source).filter(([_, qty]) => Number(qty) > 0).map(([name, qty]) => [name, Number(qty)]))
+      : {};
+    state.seats[seat] = normalizeSeatData(data);
+  });
+  persist();
+  renderAll();
+}
+function closeSummaryModal(){ currentSummaryMode = null; document.getElementById('summaryModal').classList.remove('open'); }
+function renderOpenSummaryIfNeeded(){
+  if(!document.getElementById('summaryModal').classList.contains('open')) return;
+  if(currentSummaryMode === 'fresh' || currentSummaryMode === 'catering') openSummaryModal(currentSummaryMode);
+  else if(currentSummaryMode === 'specialPax') openSpecialPaxSummaryModal();
+}
+function renderAll(){ applyTheme(); updateLegendPanel(); updateRotateBtn(); renderSeatMap(); updateSummary(); updateFlightProgress(); renderSpecialPaxList(); renderFreshList(); renderCateringList(); renderOpenSummaryIfNeeded(); }
+
+function exportJson(){
+  persist();
+  const blob = new Blob([JSON.stringify(state, null, 2)], {type:'application/json'});
+  const a = document.createElement('a');
+  const base = (state.flightNo || 'b738-seatmap').replace(/[^\w\-]+/g,'_');
+  a.href = URL.createObjectURL(blob);
+  a.download = `${base}.json`;
+  a.click();
+  URL.revokeObjectURL(a.href);
+}
+
+function importJson(file){
+  const reader = new FileReader();
+  reader.onload = e => {
+    try{
+      const parsed = JSON.parse(e.target.result);
+      state = { flightNo: parsed.flightNo || '', routing: parsed.routing || '', flightTime: parsed.flightTime || '', paxCount: parsed.paxCount || '', startTime: parsed.startTime || '', generalNote: parsed.generalNote || '', reverse: !!parsed.reverse, dark: !!parsed.dark, show6def: !!parsed.show6def, legendOpen: !!parsed.legendOpen, seats: Object.fromEntries(Object.entries(parsed.seats || {}).map(([key, val]) => [key, normalizeSeatData(val)])) };
+      document.getElementById('flightNo').value = state.flightNo;
+      document.getElementById('routing').value = state.routing || '';
+      document.getElementById('flightTime').value = state.flightTime || '';
+      document.getElementById('paxCount').value = state.paxCount || '';
+      document.getElementById('startTime').value = state.startTime || '';
+      document.getElementById('generalNote').value = state.generalNote;
+      persist();
+      updateLetterPicker();
+      renderAll();
+      updateRouteMap();
+      alert('Import hotový.');
+    }catch(err){
+      alert('Soubor se nepodařilo načíst.');
+    }
+  };
+  reader.readAsText(file);
+}
+
+function rotateMap(){ state.reverse = !state.reverse; persist(); renderAll(); }
+function toggleTheme(){ state.dark = !state.dark; persist(); renderAll(); }
+function toggle6def(){ state.show6def = !state.show6def; persist(); renderAll(); }
+function toggleLegend(){ state.legendOpen = !state.legendOpen; persist(); renderAll(); }
+
+function buildSeatFromInputs(){
+  const row = (document.getElementById('seatRowInput').value || '').replace(/\D/g,'');
+  const letterInput = document.getElementById('seatLetterInput');
+  const letter = ((letterInput && letterInput.value) || '').trim().toUpperCase();
+  if(!row || !letter) return '';
+  return `${parseInt(row,10)}${letter}`;
+}
+
+function jumpToSeat(){
+  const value = buildSeatFromInputs();
+  if(!value) return;
+  const el = document.querySelector(`[data-seat="${value}"]`);
+  if(!el){ alert('Sedadlo nebylo nalezeno.'); return; }
+  el.scrollIntoView({behavior:'smooth', block:'center'});
+  if(isSeatDisabled(value)){ alert('Sedadlo je momentálně neaktivní. Použij nejdřív „Zobrazit 6DEF“.'); return; }
+  openSeatModal(value);
+}
+
+
+
+let countdownInterval = null;
+let stopwatchInterval = null;
+let countdownStartAt = null;
+let countdownDurationSeconds = null;
+let stopwatchStartAt = null;
+
+function parseTimeToToday(timeStr){
+  if(!timeStr || !/^\d{2}:\d{2}$/.test(timeStr)) return null;
+  const [h,m] = timeStr.split(':').map(Number);
+  const now = new Date();
+  let dt = new Date(now.getFullYear(), now.getMonth(), now.getDate(), h, m, 0, 0);
+
+  // Use the most recent occurrence of the entered time.
+  // Example: now 01:18 and entered 23:00 => yesterday 23:00.
+  if(dt.getTime() > now.getTime()){
+    dt.setDate(dt.getDate() - 1);
+  }
+  return dt;
+}
+function parseDuration(timeStr){
+  if(!timeStr || !/^\d{2}:\d{2}$/.test(timeStr)) return null;
+  const [h,m] = timeStr.split(':').map(Number);
+  return ((h * 60) + m) * 60;
+}
+function formatHMS(totalSeconds){
+  const sign = totalSeconds < 0 ? '-' : '';
+  totalSeconds = Math.abs(Math.floor(totalSeconds));
+  const h = Math.floor(totalSeconds / 3600);
+  const m = Math.floor((totalSeconds % 3600) / 60);
+  const s = totalSeconds % 60;
+  return `${sign}${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+}
+function stopCountdown(){
+  if(countdownInterval){ clearInterval(countdownInterval); countdownInterval = null; }
+}
+function stopStopwatch(){
+  if(stopwatchInterval){ clearInterval(stopwatchInterval); stopwatchInterval = null; }
+}
+function updateCountdownDisplay(){
+  const display = document.getElementById('countdownDisplay');
+  if(!countdownStartAt || countdownDurationSeconds === null){
+    display.textContent = '--:--:--';
+    updateFlightProgress();
+    return;
+  }
+  const end = new Date(countdownStartAt.getTime() + countdownDurationSeconds * 1000);
+  const diff = Math.floor((end.getTime() - Date.now()) / 1000);
+  display.textContent = formatHMS(diff);
+  updateFlightProgress();
+}
+function updateStopwatchDisplay(){
+  const display = document.getElementById('stopwatchDisplay');
+  if(!stopwatchStartAt){
+    display.textContent = '--:--:--';
+    updateFlightProgress();
+    return;
+  }
+  const diff = Math.floor((Date.now() - stopwatchStartAt.getTime()) / 1000);
+  display.textContent = formatHMS(diff);
+  updateFlightProgress();
+}
+function startCountdown(){
+  const duration = parseDuration(document.getElementById('flightTime').value);
+  if(duration === null){
+    alert('Zadej nejdřív Dobu letu.');
+    return;
+  }
+  const explicitStart = parseTimeToToday(document.getElementById('startTime').value);
+  countdownStartAt = explicitStart || new Date();
+  countdownDurationSeconds = duration;
+  stopCountdown();
+  updateCountdownDisplay();
+  countdownInterval = setInterval(updateCountdownDisplay, 1000);
+}
+function resetCountdown(){
+  stopCountdown();
+  countdownStartAt = null;
+  countdownDurationSeconds = null;
+  document.getElementById('countdownDisplay').textContent = '--:--:--';
+  updateFlightProgress();
+}
+function startStopwatch(){
+  const explicitStart = parseTimeToToday(document.getElementById('startTime').value);
+  stopwatchStartAt = explicitStart || new Date();
+  stopStopwatch();
+  updateStopwatchDisplay();
+  stopwatchInterval = setInterval(updateStopwatchDisplay, 1000);
+}
+function resetStopwatch(){
+  stopStopwatch();
+  stopwatchStartAt = null;
+  document.getElementById('stopwatchDisplay').textContent = '--:--:--';
+  updateFlightProgress();
+}
+function updateRouteMapPlane(progress, visible){
+  const planeGroup = document.getElementById('routePlaneGroup');
+  const label = document.getElementById('routeMapCenterLabel');
+  if(!visible || !currentRouteAirports){
+    planeGroup.style.display = 'none';
+    if(!currentRouteAirports && !label.textContent) label.textContent = 'Zadej routing ve formátu XXX–XXX.';
+    return;
+  }
+  const fromPoint = { x: lonToX(currentRouteAirports.from.lon), y: latToY(currentRouteAirports.from.lat) };
+  const toPoint = { x: lonToX(currentRouteAirports.to.lon), y: latToY(currentRouteAirports.to.lat) };
+  const point = getQuadraticPoint(fromPoint, toPoint, progress);
+  planeGroup.style.display = '';
+  planeGroup.setAttribute('transform', `translate(${point.x} ${point.y})`);
+  label.textContent = '';
+}
+function clearRouteMapVisuals(message){
+  document.getElementById('routeMapPath').setAttribute('d', '');
+  document.getElementById('routeMapDirect').setAttribute('d', '');
+  document.getElementById('routeFromDot').setAttribute('cx', -100);
+  document.getElementById('routeFromDot').setAttribute('cy', -100);
+  document.getElementById('routeToDot').setAttribute('cx', -100);
+  document.getElementById('routeToDot').setAttribute('cy', -100);
+  document.getElementById('routeFromLabel').textContent = '';
+  document.getElementById('routeFromCityLabel').textContent = '';
+  document.getElementById('routeToLabel').textContent = '';
+  document.getElementById('routeToCityLabel').textContent = '';
+  document.getElementById('routePlaneGroup').style.display = 'none';
+  document.getElementById('routeMapCenterLabel').textContent = message || '';
+}
+function updateFlightProgress(){
+  const timeline = getFlightTimeline();
+  const routing = parseRoutingCodes(state.routing);
+  document.getElementById('routeFromCode').textContent = routing.from || '---';
+  document.getElementById('routeToCode').textContent = routing.to || '---';
+  document.getElementById('routeFromCity').textContent = describeAirport(currentRouteAirports && currentRouteAirports.from, routing.from || 'odletu');
+  document.getElementById('routeToCity').textContent = describeAirport(currentRouteAirports && currentRouteAirports.to, routing.to || 'priletu');
+
+  const fill = document.getElementById('flightTrackFill');
+  const plane = document.getElementById('flightTrackPlane');
+  const meta = document.getElementById('flightStatusMeta');
+  const elapsed = document.getElementById('flightElapsedLabel');
+  const remaining = document.getElementById('flightRemainingLabel');
+
+  if(!timeline){
+    fill.style.width = '0%';
+    plane.style.left = '0%';
+    meta.textContent = 'Doplň routing, čas startu a dobu letu.';
+    elapsed.textContent = 'Uletěno 00:00';
+    remaining.textContent = 'Zbývá --:--';
+    updateRouteMapPlane(0, false);
+    return;
+  }
+
+  const percent = Math.round(timeline.progress * 100);
+  fill.style.width = `${percent}%`;
+  plane.style.left = `${percent}%`;
+  elapsed.textContent = `Uletěno ${formatMinutes(timeline.elapsedSeconds)}`;
+  remaining.textContent = timeline.finished ? 'Let podle plánu skončil' : `Zbývá ${formatMinutes(timeline.remainingSeconds)}`;
+
+  if(!timeline.hasStarted){
+    meta.textContent = `Start v ${state.startTime}, připraveno ${state.flightTime}.`;
+  } else if(timeline.finished){
+    meta.textContent = `Plánovaná doba letu ${state.flightTime} už uplynula.`;
+  } else {
+    meta.textContent = `Ve vzduchu ${percent} % trasy.`;
+  }
+
+  updateRouteMapPlane(timeline.progress, true);
+}
+async function updateRouteMap(){
+  renderMapGrid();
+  const status = document.getElementById('routeMapStatus');
+  const centerLabel = document.getElementById('routeMapCenterLabel');
+  const routing = parseRoutingCodes(state.routing);
+  if(!routing.from || !routing.to){
+    currentRouteAirports = null;
+    status.textContent = 'Zadej routing ve formátu XXX–XXX.';
+    clearRouteMapVisuals('Zadej routing ve formátu XXX–XXX.');
+    updateFlightProgress();
+    return;
+  }
+
+  status.textContent = 'Načítám databázi letišť…';
+  try{
+    const index = await loadAirportIndex();
+    const fromAirport = index[routing.from];
+    const toAirport = index[routing.to];
+    if(!fromAirport || !toAirport){
+      currentRouteAirports = null;
+      status.textContent = 'Jedno z letišť se nepodařilo dohledat v databázi.';
+      clearRouteMapVisuals('Jedno z letišť v databázi chybí.');
+      updateFlightProgress();
+      return;
+    }
+
+    currentRouteAirports = { from: fromAirport, to: toAirport };
+    const fromPoint = { x: lonToX(fromAirport.lon), y: latToY(fromAirport.lat) };
+    const toPoint = { x: lonToX(toAirport.lon), y: latToY(toAirport.lat) };
+    const path = buildArcPath(fromPoint, toPoint);
+    document.getElementById('routeMapPath').setAttribute('d', path);
+    document.getElementById('routeMapDirect').setAttribute('d', `M ${fromPoint.x} ${fromPoint.y} L ${toPoint.x} ${toPoint.y}`);
+    document.getElementById('routeFromDot').setAttribute('cx', fromPoint.x);
+    document.getElementById('routeFromDot').setAttribute('cy', fromPoint.y);
+    document.getElementById('routeToDot').setAttribute('cx', toPoint.x);
+    document.getElementById('routeToDot').setAttribute('cy', toPoint.y);
+    document.getElementById('routeFromLabel').setAttribute('x', fromPoint.x + 12);
+    document.getElementById('routeFromLabel').setAttribute('y', fromPoint.y - 10);
+    document.getElementById('routeFromLabel').textContent = routing.from;
+    document.getElementById('routeFromCityLabel').setAttribute('x', fromPoint.x + 12);
+    document.getElementById('routeFromCityLabel').setAttribute('y', fromPoint.y + 12);
+    document.getElementById('routeFromCityLabel').textContent = shorten(fromAirport.municipality || fromAirport.name || routing.from, 22);
+    document.getElementById('routeToLabel').setAttribute('x', toPoint.x + 12);
+    document.getElementById('routeToLabel').setAttribute('y', toPoint.y - 10);
+    document.getElementById('routeToLabel').textContent = routing.to;
+    document.getElementById('routeToCityLabel').setAttribute('x', toPoint.x + 12);
+    document.getElementById('routeToCityLabel').setAttribute('y', toPoint.y + 12);
+    document.getElementById('routeToCityLabel').textContent = shorten(toAirport.municipality || toAirport.name || routing.to, 22);
+    fitMapToRoute(fromAirport, toAirport);
+    status.textContent = `${routing.from} → ${routing.to}: ${fromAirport.municipality || fromAirport.name} → ${toAirport.municipality || toAirport.name}`;
+    centerLabel.textContent = '';
+    updateFlightProgress();
+  }catch(err){
+    currentRouteAirports = null;
+    status.textContent = 'Databázi letišť se nepodařilo načíst.';
+    clearRouteMapVisuals('Mapa není k dispozici.');
+  }
+}
+function setupRouteMapInteractions(){
+  const svg = document.getElementById('routeMapSvg');
+  svg.addEventListener('pointerdown', e => {
+    mapDragState = {
+      startX: e.clientX,
+      startY: e.clientY,
+      originX: currentMapTransform.x,
+      originY: currentMapTransform.y
+    };
+    svg.classList.add('dragging');
+    svg.setPointerCapture(e.pointerId);
+  });
+  svg.addEventListener('pointermove', e => {
+    if(!mapDragState) return;
+    setMapTransform({
+      scale: currentMapTransform.scale,
+      x: mapDragState.originX + (e.clientX - mapDragState.startX),
+      y: mapDragState.originY + (e.clientY - mapDragState.startY)
+    });
+  });
+  const stopDrag = e => {
+    if(mapDragState && svg.hasPointerCapture(e.pointerId)){
+      svg.releasePointerCapture(e.pointerId);
+    }
+    mapDragState = null;
+    svg.classList.remove('dragging');
+  };
+  svg.addEventListener('pointerup', stopDrag);
+  svg.addEventListener('pointercancel', stopDrag);
+  document.getElementById('mapZoomInBtn').addEventListener('click', () => zoomMap(1.25));
+  document.getElementById('mapZoomOutBtn').addEventListener('click', () => zoomMap(0.8));
+  document.getElementById('mapResetBtn').addEventListener('click', resetMapView);
+}
+
+function updateLetterPicker(){
+  const input = document.getElementById('seatLetterInput');
+  const active = ((input && input.value) || '').toUpperCase();
+  document.querySelectorAll('.letter-btn').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.letter === active);
+    btn.classList.toggle('secondary', btn.dataset.letter !== active);
+  });
+}
+
+function loadSample(){
+  state = {
+    flightNo:'QS1234',
+    routing:'PRG–PMI',
+    flightTime:'02:35',
+    paxCount:'189+2',
+    startTime:'10:15',
+    generalNote:'Ukázková data',
+    reverse:false,
+    dark:false,
+    show6def:false,
+    legendOpen:false,
+    seats:{
+      "1A": {extraCatering:{"SLML":1}, customCatering:'', specialPax:["INF"], customPax:'', fresh:{}, note:'rodina s dítětem'},
+      "4C": {extraCatering:{}, customCatering:'', specialPax:["WCHR"], customPax:'', fresh:{}, note:'pomoc při deboardingu'},
+      "7D": {extraCatering:{"SNML":1}, deliveredCatering:{}, customCatering:'', specialPax:[], customPax:'', fresh:{"PŠ":1,"Pasta":1}, deliveredFresh:{"PŠ":1}, note:'po první službě'},
+      "17F": {extraCatering:{}, customCatering:'VIP meal', specialPax:["UMNR"], customPax:'VIP', fresh:{}, note:'předat info SCC'},
+      "21B": {extraCatering:{"SMML":1}, deliveredCatering:{"SMML":1}, customCatering:'', specialPax:[], customPax:'', fresh:{"Bloomer":2,"Bageta":1}, deliveredFresh:{"Bloomer":1}, note:'dodat najednou'},
+      "6D": {extraCatering:{}, customCatering:'', specialPax:[], customPax:'', fresh:{}, note:''}
+    }
+  };
+  document.getElementById('flightNo').value = state.flightNo;
+  document.getElementById('routing').value = state.routing || '';
+  document.getElementById('flightTime').value = state.flightTime || '';
+  document.getElementById('paxCount').value = state.paxCount || '';
+  document.getElementById('startTime').value = state.startTime || '';
+  document.getElementById('generalNote').value = state.generalNote;
+  persist();
+  updateLetterPicker();
+  renderAll();
+  updateRouteMap();
+}
+
+document.getElementById('closeModal').addEventListener('click', closeSeatModal);
+document.getElementById('saveSeatData').addEventListener('click', saveSeatData);
+document.getElementById('deleteSeatData').addEventListener('click', deleteSeatData);
+document.getElementById('themeBtn').addEventListener('click', toggleTheme);
+document.getElementById('legendToggleBtn').addEventListener('click', toggleLegend);
+document.getElementById('toggle6defBtn').addEventListener('click', toggle6def);
+document.getElementById('freshSummaryBtn').addEventListener('click', () => openSummaryModal('fresh'));
+document.getElementById('cateringSummaryBtn').addEventListener('click', () => openSummaryModal('catering'));
+document.getElementById('specialPaxSummaryBtn').addEventListener('click', openSpecialPaxSummaryModal);
+document.getElementById('closeSummaryModal').addEventListener('click', closeSummaryModal);
+document.getElementById('seatModal').addEventListener('click', e => { if(e.target.id === 'seatModal') closeSeatModal(); });
+document.getElementById('summaryModal').addEventListener('click', e => { if(e.target.id === 'summaryModal') closeSummaryModal(); });
+document.getElementById('flightNo').addEventListener('input', e => {
+  e.target.value = e.target.value.toUpperCase();
+  persist();
+});
+document.getElementById('routing').addEventListener('input', e => {
+  let val = e.target.value.toUpperCase().replace(/[^A-Z]/g,'');
+  if(val.length > 3){
+    val = val.slice(0,3) + '–' + val.slice(3,6);
+  }
+  e.target.value = val;
+  persist();
+  updateFlightProgress();
+  updateRouteMap();
+});
+
+document.getElementById('flightTime').addEventListener('input', () => { persist(); updateFlightProgress(); });
+document.querySelectorAll('[data-mode="custom-catering"]').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const action = btn.dataset.action;
+    modalCustomCateringQty = Math.max(1, modalCustomCateringQty + (action === 'plus' ? 1 : -1));
+    refreshModalProducts();
+  });
+});
+document.getElementById('addCustomCateringBtn').addEventListener('click', addCustomCatering);
+document.getElementById('customCateringName').addEventListener('input', e => {
+  e.target.value = (e.target.value || '').toUpperCase();
+});
+document.getElementById('customCateringName').addEventListener('keydown', e => {
+  if(e.key === 'Enter'){
+    e.preventDefault();
+    addCustomCatering();
+  }
+});
+document.getElementById('paxCount').addEventListener('input', e => {
+  const isDeleting = (e.inputType || '').startsWith('delete');
+  let raw = e.target.value;
+
+  if(raw === ''){
+    e.target.value = '';
+    persist();
+    return;
+  }
+
+  let val = raw.replace(/[^0-9+]/g,'');
+  const hasPlus = val.includes('+');
+
+  if(hasPlus){
+    const parts = val.split('+');
+    const left = (parts[0] || '').replace(/\D/g,'').slice(0,3);
+    const right = (parts[1] || '').replace(/\D/g,'').slice(0,2);
+    val = left + (left ? '+' : '') + right;
+  } else {
+    const digits = val.replace(/\D/g,'');
+    if(isDeleting){
+      val = digits.slice(0,3);
+    } else if(digits.length >= 3){
+      val = digits.slice(0,3) + '+';
+    } else {
+      val = digits.slice(0,2);
+    }
+  }
+
+  e.target.value = val;
+  persist();
+});
+document.getElementById('startTime').addEventListener('input', () => { persist(); updateFlightProgress(); });
+document.getElementById('generalNote').addEventListener('input', persist);
+document.getElementById('rotateBtn').addEventListener('click', rotateMap);
+document.getElementById('findBtn').addEventListener('click', jumpToSeat);
+document.addEventListener('click', e => {
+  const chip = e.target.closest('.delivery-chip');
+  if(chip){
+    toggleDeliveredItem(
+      chip.dataset.seat,
+      chip.dataset.deliveryType,
+      chip.dataset.product,
+      Number(chip.dataset.index)
+    );
+    return;
+  }
+
+  const toggleAllBtn = e.target.closest('[data-delivery-toggle-all="1"], [data-bulk-delivery]');
+  if(toggleAllBtn){
+    toggleDeliveredAll(
+      toggleAllBtn.dataset.seat,
+      toggleAllBtn.dataset.deliveryType || toggleAllBtn.dataset.bulkDelivery
+    );
+    return;
+  }
+
+  const toggleGlobalBtn = e.target.closest('[data-delivery-toggle-global="1"]');
+  if(toggleGlobalBtn){
+    toggleDeliveredGlobal(toggleGlobalBtn.dataset.deliveryType);
+  }
+});
+
+document.querySelectorAll('.letter-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const input = document.getElementById('seatLetterInput');
+    if(input) input.value = btn.dataset.letter;
+    updateLetterPicker();
+  });
+});
+document.getElementById('seatRowInput').addEventListener('keydown', e => { if(e.key === 'Enter') jumpToSeat(); });
+document.getElementById('exportBtn').addEventListener('click', exportJson);
+document.getElementById('importBtn').addEventListener('click', () => document.getElementById('importFile').click());
+document.getElementById('importFile').addEventListener('change', e => { if(e.target.files[0]) importJson(e.target.files[0]); e.target.value = ''; });
+document.getElementById('countdownStartBtn').addEventListener('click', startCountdown);
+document.getElementById('countdownResetBtn').addEventListener('click', resetCountdown);
+document.getElementById('stopwatchStartBtn').addEventListener('click', startStopwatch);
+document.getElementById('stopwatchResetBtn').addEventListener('click', resetStopwatch);
+document.addEventListener('keydown', e => {
+  if(e.key === 'Escape'){
+    if(document.getElementById('seatModal').classList.contains('open')) closeSeatModal();
+    if(document.getElementById('summaryModal').classList.contains('open')) closeSummaryModal();
+  }
+});
+
+document.getElementById('clearBtn').addEventListener('click', () => {
+  if(confirm('Opravdu vymazat všechna data?')){
+    state = { flightNo:'', routing:'', flightTime:'', paxCount:'', startTime:'', generalNote:'', reverse:false, dark:false, show6def:false, legendOpen:false, seats:{} };
+    document.getElementById('flightNo').value = '';
+    document.getElementById('routing').value = '';
+    document.getElementById('flightTime').value = '';
+    document.getElementById('paxCount').value = '';
+    document.getElementById('startTime').value = '';
+    document.getElementById('generalNote').value = '';
+    document.getElementById('seatRowInput').value = '';
+    const seatLetterInput = document.getElementById('seatLetterInput');
+    if(seatLetterInput) seatLetterInput.value = '';
+    updateLetterPicker();
+    resetCountdown();
+    resetStopwatch();
+    persist();
+    renderAll();
+    updateRouteMap();
+  }
+});
+
+loadState();
+setupRouteMapInteractions();
+updateLetterPicker();
+renderAll();
+updateRouteMap();
+setInterval(updateFlightProgress, 1000);
+</script>
+
+<script>
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('./sw.js').catch(err => {
+      console.error('SW registration failed:', err);
+    });
+  });
+}
+</script>
+
+</body>
+</html>
