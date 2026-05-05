@@ -1,4 +1,4 @@
-const CACHE_NAME = "crew-medical-support-v2";
+const CACHE_NAME = "crew-medical-support-v3";
 const APP_SHELL = [
   "./cms.html",
   "./manifest.webmanifest",
