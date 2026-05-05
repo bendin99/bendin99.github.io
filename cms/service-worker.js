@@ -1,6 +1,6 @@
 const CACHE_NAME = "crew-medical-support-v3";
 const APP_SHELL = [
-  "./cms.html",
+  "./index.html",
   "./manifest.webmanifest",
   "./icon-cms.png",
   "./icon-cms-192.png",
@@ -42,7 +42,7 @@ self.addEventListener("fetch", (event) => {
           });
           return networkResponse;
         })
-        .catch(() => caches.match("./cms.html"))
+        .catch(() => caches.match("./index.html"))
     );
     return;
   }
