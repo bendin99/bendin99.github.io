@@ -1,7 +1,7 @@
 {
   "name": "Crew Medical Support",
   "short_name": "CMS",
-  "description": "Offline medical support reference for crew.",
+  "description": "Crew Medical Support",
   "start_url": "./cms.html",
   "scope": "./",
   "display": "standalone",
