@@ -569,9 +569,9 @@ function renderResults(result) {
 
     if (result.usePlanningCall && result.sbyCallTime !== null) {
       if (isNightMinute(result.sbyCallTime)) {
-        infoText += ` Call time ${minutesToTime(result.sbyCallTime)} spadl do 23:00–07:00, takže od call time do reportingu se vše počítá jako denní držení.`;
+        infoText += ` Čas hovoru ${minutesToTime(result.sbyCallTime)} spadl do 23:00–07:00, takže od call time do reportingu se vše počítá jako denní držení.`;
       } else {
-        infoText += ` Call time ${minutesToTime(result.sbyCallTime)} byl zadaný, ale neleží v 23:00–07:00, takže noční výjimka se nepoužila.`;
+        infoText += ` Čas hovoru ${minutesToTime(result.sbyCallTime)} byl zadaný, ale neleží v 23:00–07:00, takže noční výjimka se nepoužila.`;
       }
     }
 
@@ -581,10 +581,10 @@ function renderResults(result) {
       infoText += ` SBY duty nezkrátila.`;
     }
   } else {
-    infoText += ` Před reportingem nebylo SBY.`;
+    infoText += ` Před reportingem nebyla SBY.`;
   }
 
-  infoText += ` Přepočet do UTC je udělaný s offsetem ${formatUtcOffset(result.utcOffset)}.`;
+  infoText += ` Přepočet do UTC je udělaný s posunem ${formatUtcOffset(result.utcOffset)}.`;
 
   if (result.warnings.length) {
     infoText += ` Upozornění: ${result.warnings.join(" ")}`;
