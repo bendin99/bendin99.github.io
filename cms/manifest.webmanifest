@@ -2,7 +2,7 @@
   "name": "Crew Medical Support",
   "short_name": "CMS",
   "description": "Crew Medical Support",
-  "start_url": "./cms.html",
+  "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",
   "background_color": "#f7fafc",
